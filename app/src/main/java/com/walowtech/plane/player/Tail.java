@@ -24,6 +24,9 @@ public class Tail {
     public void updateCurrentLine() {
         Plane plane = GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane();
 
+        if(mTailData.size() <= 0)
+            return;
+
         TailDataPoint currentPoint = mTailData.get(mTailData.size() - 1);
 
         if(currentPoint.getCurveType() == TailCurveType.STRAIGHT) {

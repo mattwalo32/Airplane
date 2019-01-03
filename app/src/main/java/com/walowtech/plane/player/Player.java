@@ -41,7 +41,7 @@ public class Player {
     }
 
     public void update(){
-        mPlane.moveForward(mPlayerSpeed, mPlane.getHeading(), GameLoop.TARGET_CYCLE_TIME);
+        mPlane.moveForward(mPlayerSpeed, mPlane.getHeading(), GameLoop.sActualCycleTime);
 
         if(mPlane.mTurn){
             mPlane.turn(mPlane.mTurnRight ? mPlayerTurnSpeed : -mPlayerTurnSpeed, GameLoop.TARGET_CYCLE_TIME);

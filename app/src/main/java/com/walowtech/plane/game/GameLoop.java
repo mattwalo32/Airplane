@@ -20,6 +20,7 @@ public class GameLoop implements Runnable{
 
     private long mCycleStartTime;
     private long cycleTime;
+    public static long sActualCycleTime = 0;
     private static boolean mRunning;
 
     private Thread gameThread;
@@ -48,6 +49,8 @@ public class GameLoop implements Runnable{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            sActualCycleTime = System.currentTimeMillis() - mCycleStartTime;
         }
         CORE.stop();
         restartGame();

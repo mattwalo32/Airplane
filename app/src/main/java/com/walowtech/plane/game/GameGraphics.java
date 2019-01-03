@@ -60,10 +60,11 @@ public class GameGraphics extends SurfaceView implements GameComponent{
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Plane p = GameLoop.getCore().getPlayerManager().getPlayers().get(0).getPlane();
-        canvas.drawBitmap(mBackground, -p.getScreenX(), -p.getScreenY(), mPaint);
-        if(mInitialized)
+        if(mInitialized) {
+            Plane p = GameLoop.getCore().getPlayerManager().getPlayers().get(0).getPlane();
+            canvas.drawBitmap(mBackground, -p.getScreenX(), -p.getScreenY(), mPaint);
             drawPlane(canvas);
+        }
     }
 
     private void drawPlane(Canvas canvas){
