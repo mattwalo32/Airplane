@@ -1,12 +1,20 @@
 package com.walowtech.plane.activity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.RelativeLayout;
 
 import com.google.android.gms.games.multiplayer.realtime.Room;
 import com.walowtech.plane.Input.GameClickListener;
+import com.walowtech.plane.R;
 import com.walowtech.plane.game.GameLoop;
+import com.walowtech.plane.multiplayer.EventType;
+import com.walowtech.plane.multiplayer.MessageUtils;
 import com.walowtech.plane.multiplayer.Messages;
 import com.walowtech.plane.multiplayer.MultiplayerAccess;
 
@@ -25,6 +33,7 @@ public class GameActivity extends Activity {
     private Room mRoom;
     private MultiplayerAccess mMultiplayerAccess;
     private boolean mMuliplayer;
+    public static RelativeLayout mRoot;
 
 
     @Override
@@ -33,14 +42,7 @@ public class GameActivity extends Activity {
 
         mMuliplayer = false;
 
-        gameLoop = new GameLoop(this);
-        setContentView(GameLoop.getCore().getGraphics());
-
-        clickListener = new GameClickListener(this);
-        GameLoop.getCore().getGraphics().setOnTouchListener(clickListener);
-
         mClientParticipationID = getIntent().getStringExtra("USERID");
-        Log.i("MULTIPLAYER", "Got ID Extra: " + mClientParticipationID);
         mRoom = getIntent().getParcelableExtra("ROOM");
 
         if(mClientParticipationID != null){
@@ -48,12 +50,62 @@ public class GameActivity extends Activity {
             // Multi Player
             mMuliplayer = true;
             mMultiplayerAccess = new MultiplayerAccess(this, this, mRoom, mClientParticipationID);
+            gameLoop = new GameLoop(this, this, mMultiplayerAccess);
             new Thread(new opponentChecker()).start();
-        }else {
+        }else{
             Log.i("MULTIPLAYER", "In singleplayer mode");
             // Single Player
+            gameLoop = new GameLoop(this, this);
             gameLoop.startGame();
         }
+
+        setContentView(R.layout.activity_game);
+        mRoot = findViewById(R.id.root);
+        mRoot.addView(GameLoop.getCore().getGraphics());
+        clickListener = new GameClickListener(this);
+        GameLoop.getCore().getGraphics().setOnTouchListener(clickListener);
+
+
+        if(mMuliplayer){
+            mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
+        }
+    }
+
+    public static void createButtons(Context context){
+        View btns = LayoutInflater.from(context).inflate(R.layout.endgame_buttons, mRoot, false);
+
+        mRoot.addView(btns);
+    }
+
+    public void playAgain(View v){
+        mMultiplayerAccess.sendToAllReliably(Messages.PLAY_AGAIN.toString());
+        MultiplayerAccess.mClientPlayAgain = true;
+        final Room room = mMultiplayerAccess.getRoom();
+
+        if(MultiplayerAccess.mOpponentPlayAgain){
+            gameLoop.restartGame();
+        }else{
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if(MultiplayerAccess.mOpponentPlayAgain)
+                        gameLoop.restartGame();
+                    else if(mMultiplayerAccess.shouldCancelGame(room))
+                        mMultiplayerAccess.leaveRoom();
+
+                    try{
+                        Thread.sleep(50);
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+    }
+
+    public void quit(View v){
+        MultiplayerAccess.mClientPlayAgain = false;
+        mMultiplayerAccess.leaveRoom();
     }
 
     private class opponentChecker implements Runnable {
@@ -63,13 +115,11 @@ public class GameActivity extends Activity {
         @Override
         public void run() {
             mRunning = true;
-            mMultiplayerAccess.setClientReady(true);
-            mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
             while(mRunning){
 
                 //Log.i("MULTIPLAYER", "WAITING TO START");
 
-                if(mMultiplayerAccess.isOpponentReady()){
+                if(MultiplayerAccess.mOpponentReady){
                     Log.i("MULTIPLAYER", "BOTH ARE READY");
                     mRunning = false;
                 }

@@ -16,20 +16,32 @@ public class Tail {
     private int mTailColor = Color.BLACK;
     private float mTailWidth;
     private CopyOnWriteArrayList<TailDataPoint> mTailData = new CopyOnWriteArrayList<>();
+    private boolean mIsLocal;
+    private int mPlayerId;
+
+    public Tail(boolean pIsLocal, int pId){
+        mIsLocal = pIsLocal;
+        mPlayerId = pId;
+    }
 
     public void addDataPoint(TailDataPoint pData){
         mTailData.add(pData);
     }
 
     public void updateCurrentLine() {
-        Plane plane = GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane();
+        Plane plane = GameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).getPlane();
 
         if(mTailData.size() <= 0)
             return;
 
-        TailDataPoint currentPoint = mTailData.get(mTailData.size() - 1);
+        TailDataPoint currentPoint = getCurrentDataPoint();
 
         if(currentPoint.getCurveType() == TailCurveType.STRAIGHT) {
+            currentPoint.setRealEndX((float) (currentPoint.getRealEndX() - plane.getDeltaX()));
+            currentPoint.setRealEndY((float) (currentPoint.getRealEndY() - plane.getDeltaY()));
+
+            if (!mIsLocal) return;
+
             if (plane.isMovingX()) {
                 currentPoint.setEndX((float) (currentPoint.getEndX() - plane.getDeltaX()));
             }else {
@@ -45,14 +57,11 @@ public class Tail {
             if(!plane.isMovingX() || !plane.isMovingY()) {
                 shiftAllPoints(!plane.isMovingX() ? plane.getDeltaX() : 0, !plane.isMovingY() ? plane.getDeltaY() : 0);
             }
-
-            currentPoint.setRealEndX((float) (currentPoint.getRealEndX() - plane.getDeltaX()));
-            currentPoint.setRealEndY((float) (currentPoint.getRealEndY() - plane.getDeltaY()));
         }
     }
 
     public void updateCurrentCurve(float pX, float pY, float pAngle){
-        TailDataPoint data = mTailData.get(mTailData.size() - 1);
+        TailDataPoint data = getCurrentDataPoint();
         if(data.getCurveType() == TailCurveType.CURVED) {
             
             Plane plane = GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane();
@@ -96,7 +105,6 @@ public class Tail {
     }
 
     private void shiftAllPoints(double dx, double dy){
-        Plane plane = GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane();
         for(int i = 0; i < mTailData.size() - 1; i++) {
             TailDataPoint currentPoint = mTailData.get(i);
             currentPoint.setStartX((float)(currentPoint.getStartX() + dx));

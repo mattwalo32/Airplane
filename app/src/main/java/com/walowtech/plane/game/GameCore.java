@@ -1,10 +1,11 @@
 package com.walowtech.plane.game;
 
+import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 
 import com.walowtech.plane.collision.CollisionDetector;
 import com.walowtech.plane.data.GameComponents;
+import com.walowtech.plane.multiplayer.MultiplayerAccess;
 import com.walowtech.plane.player.PlayerManager;
 import com.walowtech.plane.util.CodeIntegrityUtils;
 
@@ -20,12 +21,18 @@ import java.util.ArrayList;
 public class GameCore {
 
     private ArrayList<GameComponent> mGameComponents = new ArrayList<>();
+    private MultiplayerAccess mMultiplayerAccess;
 
-    public GameCore(Context pContext){
+    public GameCore(Context pContext, Activity pActivity){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
         addGameComponent(new PlayerManager(pContext));
-        addGameComponent(new GameGraphics(pContext));
+        addGameComponent(new GameGraphics(pContext, pActivity));
         //TODO: Add components
+    }
+
+    public GameCore(Context pContext, Activity pActivity, MultiplayerAccess pMultiplayerAccess){
+        this(pContext, pActivity);
+        mMultiplayerAccess = pMultiplayerAccess;
     }
 
     public void init(){
@@ -34,6 +41,8 @@ public class GameCore {
 
         addGameComponent(new CollisionDetector(getPlayerManager().getPlayers().get(0).getPlane()));
         mGameComponents.get(mGameComponents.size() - 1).init();
+        MultiplayerAccess.mClientPlayAgain = false;
+        MultiplayerAccess.mOpponentPlayAgain = false;
     }
 
     public void executeUpdate(){
@@ -69,7 +78,11 @@ public class GameCore {
         throw new NullPointerException("Player Manager not found");
     }
 
-//    public GameComponent getGameComponent(String componentName){
+    public MultiplayerAccess getMultiplayerAccess() {
+        return mMultiplayerAccess;
+    }
+
+    //    public GameComponent getGameComponent(String componentName){
 //        CodeIntegrityUtils.checkNotEmpty(componentName, "Component name must be provided");
 //        for(GameComponent component : mGameComponents){
 //            if(component.getName().equals(componentName))

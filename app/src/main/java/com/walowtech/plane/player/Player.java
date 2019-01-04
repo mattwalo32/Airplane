@@ -31,7 +31,7 @@ public class Player {
 
         mPlayerId = pId;
         mPlayerIsLocal = pPlayerIsLocal;
-        mPlane = new Plane(pContext);
+        mPlane = new Plane(pContext, pPlayerIsLocal, mPlayerId);
     }
 
     public void init(){
@@ -44,20 +44,21 @@ public class Player {
         mPlane.moveForward(mPlayerSpeed, mPlane.getHeading(), GameLoop.sActualCycleTime);
 
         if(mPlane.mTurn){
-            mPlane.turn(mPlane.mTurnRight ? mPlayerTurnSpeed : -mPlayerTurnSpeed, GameLoop.TARGET_CYCLE_TIME);
+            mPlane.turn(mPlane.mTurnRight ? mPlayerTurnSpeed : -mPlayerTurnSpeed, GameLoop.sActualCycleTime);
             if(!turnTailGenerated){
                 mPlane.getTail().addDataPoint(
                         new TailDataPoint(new RectF(mPlane.getTailX(0), mPlane.getTailY(0), mPlane.getTailX(0), mPlane.getTailY(0)), mPlane.getHeading(),
                                 ConversionUtils.headingToArc(mPlane.getHeading(), mPlane.mTurnRight), 0));
                 turnTailGenerated = true;
             }else{
-                mPlane.getTail().updateCurrentCurve(mPlane.getTailX(0), mPlane.getTailY(0),  mPlane.getHeading() - mPlane.getTail().getCurrentDataPoint().getStartHeading());
+                //mPlane.getTail().updateCurrentCurve(mPlane.getTailX(0), mPlane.getTailY(0),  mPlane.getHeading() - mPlane.getTail().getCurrentDataPoint().getStartHeading());
             }
         }else{
             if(!straightTailGenerated){
-                mPlane.getTail().addDataPoint(
-                        new TailDataPoint(mPlane.getTailX(0), mPlane.getTailY(0), mPlane.getTailX(0), mPlane.getTailY(0))
-                );
+                float x = mPlane.isLocal() ? mPlane.getTailX(0) : mPlane.getRealTailX(0);
+                float y = mPlane.isLocal() ? mPlane.getTailY(0) : mPlane.getRealTailY(0);
+
+                mPlane.getTail().addDataPoint(new TailDataPoint(x, y, x, y));
                 straightTailGenerated = true;
             }else{
                 mPlane.getTail().updateCurrentLine();

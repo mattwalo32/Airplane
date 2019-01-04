@@ -2,17 +2,19 @@ package com.walowtech.plane.multiplayer;
 
 public enum EventType {
 
-    MOVE_STRAIGHT(Byte.parseByte("000")),
-    START_TURN(Byte.parseByte("001")),
-    END_TURN(Byte.parseByte("010"));
+    MOVE_STRAIGHT(0),
+    START_TURN_LEFT(1),
+    START_TURN_RIGHT(2),
+    END_TURN(3),
+    UPDATE_NOW(4);
 
-    private byte code;
+    private int code;
 
-    EventType(byte code){
+    EventType(int code){
         this.code = code;
     }
 
-    public byte getBits(){
+    public int getCode(){
         return code;
     }
 }

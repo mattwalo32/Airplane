@@ -28,7 +28,8 @@ public class ConversionUtils {
      */
     public int dpToPx(int pDp){
         CodeIntegrityUtils.checkNotNull(pDp, "Cannot convert NULL dp");
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, pDp, mDisplayMetrics);
+        return 1;
+        //return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, pDp, mDisplayMetrics);
     }
 
     /**

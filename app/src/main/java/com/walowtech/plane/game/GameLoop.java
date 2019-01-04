@@ -1,8 +1,17 @@
 package com.walowtech.plane.game;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+import android.widget.Button;
 
+import com.walowtech.plane.activity.GameActivity;
+import com.walowtech.plane.multiplayer.EventType;
+import com.walowtech.plane.multiplayer.MessageUtils;
+import com.walowtech.plane.multiplayer.Messages;
+import com.walowtech.plane.multiplayer.MultiplayerAccess;
+import com.walowtech.plane.player.Plane;
+import com.walowtech.plane.player.PlayerManager;
 import com.walowtech.plane.util.CodeIntegrityUtils;
 
 /**
@@ -21,14 +30,26 @@ public class GameLoop implements Runnable{
     private long mCycleStartTime;
     private long cycleTime;
     public static long sActualCycleTime = 0;
-    private static boolean mRunning;
+    public static boolean mRunning;
 
     private Thread gameThread;
+    private Context mContext;
+    private Activity mActivity;
 
 
-    public GameLoop(Context pContext){
+    public GameLoop(Context pContext, Activity pActivity){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
-        CORE = new GameCore(pContext);
+        mContext = pContext;
+        mActivity = pActivity;
+        CORE = new GameCore(pContext, pActivity);
+    }
+
+    public GameLoop(Context pContext, Activity pActivity, MultiplayerAccess pMultiplayerAccess){
+        CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
+        CodeIntegrityUtils.checkNotNull(pMultiplayerAccess, "Multiplayer Access cannot be null");
+        mContext = pContext;
+        mActivity = pActivity;
+        CORE = new GameCore(pContext, pActivity, pMultiplayerAccess);
     }
 
     @Override
@@ -38,6 +59,7 @@ public class GameLoop implements Runnable{
             try {
                 //Log.i("TEST", "Running Loop");
                 mCycleStartTime = System.currentTimeMillis();
+
                 CORE.executeUpdate();
                 cycleTime = mCycleStartTime - System.currentTimeMillis();
 
@@ -53,7 +75,15 @@ public class GameLoop implements Runnable{
             sActualCycleTime = System.currentTimeMillis() - mCycleStartTime;
         }
         CORE.stop();
-        restartGame();
+
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                GameActivity.createButtons(mContext);
+            }
+        });
+
+        //restartGame();
     }
 
     public void startGame(){
@@ -62,12 +92,22 @@ public class GameLoop implements Runnable{
         gameThread.start();
     }
 
-    private void restartGame(){
+    public void restartGame(){
         startGame();
     }
 
     public static void stopGame(){
         mRunning = false;
+
+        if(getCore().getMultiplayerAccess() != null){
+            getCore().getMultiplayerAccess().sendToAllReliably(Messages.COLLIDED.toString());
+
+        }
+    }
+
+    public void showButtons(){
+        Button btnRestart = new Button(mContext);
+        btnRestart.setText("Play Again");
     }
 
     public static GameCore getCore(){

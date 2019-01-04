@@ -16,6 +16,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.games.Game;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesActivityResultCodes;
 import com.google.android.gms.games.GamesCallbackStatusCodes;
@@ -33,6 +34,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.common.base.Charsets;
 import com.walowtech.plane.activity.GameActivity;
+import com.walowtech.plane.game.GameLoop;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -61,6 +63,9 @@ public class MultiplayerAccess {
     public static boolean mPlaying = false;
     public static boolean mClientReady = false;
     public static boolean mOpponentReady = false;
+    public static boolean mStartingTopLeft = false;
+    public static boolean mClientPlayAgain = false;
+    public static boolean mOpponentPlayAgain = false;
     private boolean mWaitingRoomFinishedFromCode = false;
 
     public MultiplayerAccess(Context pContext, Activity pActivity){
@@ -158,14 +163,22 @@ public class MultiplayerAccess {
                     if(mClientReady){
                         // This device has loaded screen and is ready to start
                         Log.i("MULTIPLAYER", "Telling to start now");
+                        mStartingTopLeft = true;
                         sendToAllReliably(Messages.START_NOW.toString());
                     }else{
+                        mStartingTopLeft = false;
                         Log.i("MULTIPLAYER", "Client is not ready");
                     }
                 }else if(message.equals(Messages.START_NOW.toString())){
                     // Both devices are ready, the other one is starting
                     mOpponentReady = true;
-                    mClientReady = true;
+                    //mClientReady = true;
+                }else if(message.equals(Messages.PLAY_AGAIN.toString())) {
+                    mOpponentPlayAgain = true;
+                }else if(message.equals(Messages.COLLIDED.toString())){
+                    GameLoop.getCore().stop();
+                }else if(message.matches("[[-]*[0-9]+,]*")){
+                    MessageUtils.parseMessage(message, GameLoop.getCore().getPlayerManager().getPlayers().get(1).getPlane());
                 }
             }
         };
@@ -367,11 +380,21 @@ public class MultiplayerAccess {
                         .sendReliableMessage(bytes, mRoom.getRoomId(), participantId, null).addOnCompleteListener(new OnCompleteListener<Integer>() {
                             @Override
                             public void onComplete(@NonNull Task<Integer> task) {
-                                Log.i("MULTIPLAYER", "Message Sent: " + pMessage.toString());
+                                if(pMessage.equals(Messages.READY_TO_START.toString())){
+                                    mClientReady = true;
+                                }
                             }
                         });
             }
         }
+    }
+
+    public void sendToAll(final String pMessage){
+        byte[] bytes = pMessage.getBytes(Charsets.UTF_8);
+
+        Games.getRealTimeMultiplayerClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
+                        .sendUnreliableMessageToOthers(bytes, mRoom.getRoomId());
+
     }
 
     private void onStartGameMessage(){
@@ -391,16 +414,12 @@ public class MultiplayerAccess {
         }
     }
 
-    public void setClientReady(boolean pReady){
-        mClientReady = pReady;
-    }
-
-    public boolean isOpponentReady(){
-        return mOpponentReady;
-    }
-
     public boolean isSignedIn(){
         return GoogleSignIn.getLastSignedInAccount(mContext) != null;
+    }
+
+    public Room getRoom(){
+        return mRoom;
     }
 
     private boolean shouldStartGame(Room room){
@@ -414,7 +433,7 @@ public class MultiplayerAccess {
         return connectedPlayers >= MIN_PLAYERS && !mPlaying;
     }
 
-    private boolean shouldCancelGame(Room room) {
+    public  boolean shouldCancelGame(Room room) {
 
         int activeParticipants = 0;
 

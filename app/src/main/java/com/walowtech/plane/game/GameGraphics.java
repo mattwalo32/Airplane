@@ -1,5 +1,6 @@
 package com.walowtech.plane.game;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 
+import com.google.android.gms.games.Game;
 import com.walowtech.plane.collision.CollisionDetector;
 import com.walowtech.plane.collision.CollisionType;
 import com.walowtech.plane.data.GameComponents;
@@ -44,12 +46,20 @@ public class GameGraphics extends SurfaceView implements GameComponent{
     private int mScreenWidth;
     private int mScreenHeight;
     private Bitmap mBackground;
+    private Activity mActivity;
+    private Runnable mInvaidate = new Runnable() {
+        @Override
+        public void run() {
+            invalidate();
+        }
+    };
 
-    public GameGraphics(Context context) {
+    public GameGraphics(Context context, Activity pActivity) {
         super(context);
         convert = new ConversionUtils(context);
         dp = convert.dpToPx(1);
         setWillNotDraw(false);
+        mActivity = pActivity;
 
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         mScreenWidth = metrics.widthPixels;
@@ -82,15 +92,20 @@ public class GameGraphics extends SurfaceView implements GameComponent{
 //        }
 
         //canvas.drawArc(new RectF(3, 3, 500, 250), 50, 60, false, mPaint);
-        for(Player player : GameLoop.getCore().getPlayerManager().getPlayers()){
+        PlayerManager manager = GameLoop.getCore().getPlayerManager();
+        for(Player player : manager.getPlayers()){
             Plane plane = player.getPlane();
+
+
+            float planeX = plane.isLocal() ? plane.getX() : plane.getRealX() - manager.getLocalPlayer().getPlane().getScreenX();
+            float planeY = plane.isLocal() ? plane.getY() : plane.getRealY() - manager.getLocalPlayer().getPlane().getScreenY();
 
 //            Point centerOfRotation = plane.mTurnRight ? new Point((int) (plane.getX() + plane.getPlaneSprite().getWidth() / 2), (int) plane.getY() + plane.getPlaneSprite().getHeight())
 //                    : new Point((int) (plane.getX() + plane.getPlaneSprite().getWidth() / 2), (int) plane.getY());
-            Point centerOfRotation = new Point((int)(plane.getX() + plane.getPlaneSprite().getWidth() / 2), (int)(plane.getY() + plane.getPlaneSprite().getHeight() / 2));
+            Point centerOfRotation = new Point((int)(planeX + plane.getPlaneSprite().getWidth() / 2), (int)(planeY + plane.getPlaneSprite().getHeight() / 2));
             canvas.save();
             canvas.rotate(plane.getHeading() + 180, centerOfRotation.x, centerOfRotation.y);
-            canvas.drawBitmap(plane.getPlaneSprite(), plane.getX(), plane.getY(), mPaint);
+            canvas.drawBitmap(plane.getPlaneSprite(), planeX, planeY, mPaint);
             canvas.restore();
 
             mPaint.setColor(plane.getTail().getTailColor());
@@ -98,8 +113,11 @@ public class GameGraphics extends SurfaceView implements GameComponent{
             for(TailDataPoint data : plane.getTail().getTailData()){
                 mPaint.setStrokeWidth(plane.getTail().getTailWidth());
                 if(data.getCurveType() == TailCurveType.STRAIGHT){
-                    mPaint.setColor(Color.RED);
-                    canvas.drawLine(data.getStartX(), data.getStartY(), data.getEndX(), data.getEndY(), mPaint);
+                    float startX = plane.isLocal() ? data.getStartX() : data.getRealStartX() - manager.getLocalPlayer().getPlane().getScreenX();
+                    float startY = plane.isLocal() ? data.getStartY() : data.getRealStartY() - manager.getLocalPlayer().getPlane().getScreenY();
+                    float endX = plane.isLocal() ? data.getEndX() : data.getRealEndX() - manager.getLocalPlayer().getPlane().getScreenX();
+                    float endY = plane.isLocal() ? data.getEndY() : data.getRealEndY() - manager.getLocalPlayer().getPlane().getScreenY();
+                    canvas.drawLine(startX, startY, endX, endY, mPaint);
                 }else if(data.getCurveType() == TailCurveType.CURVED){
                     //canvas.save();
                     //canvas.rotate(data.getStartHeading() - 90, data.getBounds().centerX(), data.getBounds().centerY());
@@ -122,7 +140,7 @@ public class GameGraphics extends SurfaceView implements GameComponent{
 
     @Override
     public void update() {
-        invalidate();
+        mActivity.runOnUiThread(mInvaidate);
     }
 
     @Override

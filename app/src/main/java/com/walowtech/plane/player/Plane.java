@@ -14,8 +14,10 @@ import android.graphics.drawable.LayerDrawable;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
+import com.google.android.gms.games.Game;
 import com.walowtech.plane.R;
 import com.walowtech.plane.game.GameLoop;
+import com.walowtech.plane.multiplayer.MultiplayerAccess;
 import com.walowtech.plane.util.CodeIntegrityUtils;
 import com.walowtech.plane.util.ConversionUtils;
 import com.walowtech.plane.util.GraphicUtils;
@@ -32,11 +34,13 @@ import java.io.ByteArrayOutputStream;
 public class Plane {
 
     private float dp;
+    private int mPlayerId;
 
     public boolean mTurn;
     public boolean mTurnRight;
     private boolean mMovingX;
     private boolean mMovingY;
+    private boolean mIsLocal;
     private double mDeltaX;
     private double mDeltaY;
     private float mXCoord;
@@ -53,35 +57,48 @@ public class Plane {
 
     private ConversionUtils convert;
     private DisplayMetrics displayMetrics;
-    private Tail mTail = new Tail();
+    private Tail mTail;
 
-    public Plane(Context pContext){
+    public Plane(Context pContext, boolean pLocal, int pId){
         CodeIntegrityUtils.checkNotNull(pContext, "Context must not be null");
         displayMetrics = pContext.getResources().getDisplayMetrics();
         convert = new ConversionUtils(pContext);
+        mIsLocal = pLocal;
+        mPlayerId = pId;
 
         dp = convert.dpToPx(1);
         mPlaneSprite = BitmapFactory.decodeResource(pContext.getResources(), R.drawable.icons8_fighter_jet_96);
-        mPlaneSprite = Bitmap.createScaledBitmap(mPlaneSprite, (int)(60*dp), (int)(60*dp), true);
+        mPlaneSprite = Bitmap.createScaledBitmap(mPlaneSprite, (int)(120*dp), (int)(120*dp), true);
 
+        mTail = new Tail(pLocal, mPlayerId);
     }
 
     public void init(){
+
+        boolean startLeft = false;
+
+        if(GameLoop.getCore().getMultiplayerAccess() != null)
+            startLeft =  mIsLocal == MultiplayerAccess.mStartingTopLeft;
+
+
+        Log.i("TEST", "Starting Left: " + startLeft + " Local: " + mIsLocal);
+
         mWidth = mPlaneSprite.getWidth();
         mHeight = mPlaneSprite.getHeight();
-        mRealX = mXCoord = 100*dp;
-        mRealY = mYCoord = 100*dp;
 
         relativeMargin = 2 * displayMetrics.widthPixels / 5;
         mRelativeBounds = new RectF(relativeMargin, 2 * relativeMargin, displayMetrics.widthPixels - relativeMargin, displayMetrics.heightPixels - 2 * relativeMargin);
         mScreenBounds = new RectF(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels);
 
+        mXCoord = mRealX =  200;
+        //mXCoord = startLeft ? 100  : mScreenBounds.right - 200;
+        mRealY = mYCoord = startLeft ? 100: 300;
+        //mYCoord =  mScreenBounds.bottom / 2;
+
         //TODO: Change to 90
-        mHeading = 180;
+        mHeading =  180;
         mTurn = false;
         mTurnRight = false;
-
-        mTail.setTailColor(Color.RED);
     }
 
     /**
@@ -95,6 +112,11 @@ public class Plane {
     public void moveForward(float pSpeed, float pHeading, float pCycleTime){
         mDeltaX = ((pCycleTime * pSpeed) / 1000) * Math.cos(Math.toRadians(pHeading));
         mDeltaY = ((pCycleTime * pSpeed) / 1000) * Math.sin(Math.toRadians(pHeading));
+
+        mRealX -= mDeltaX;
+        mRealY -= mDeltaY;
+
+        if(!mIsLocal) return;
 
         // The relative coordinates should be moved if the plane is near the center of the screen or
         // if the plane is not near the center of the screen but the next movement will bring it closer in either dimension.
@@ -124,9 +146,6 @@ public class Plane {
             mScreenBounds.top -= mDeltaY;
             mScreenBounds.bottom -= mDeltaY;
         }
-
-        mRealX -= mDeltaX;
-        mRealY -= mDeltaY;
     }
 
     /**
@@ -151,9 +170,9 @@ public class Plane {
         mTurnRight = pDirection;
 
         if(!mTurn)
-            GameLoop.getCore().getPlayerManager().getLocalPlayer().setStraightTailGenerated(mTurn);
+            GameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).setStraightTailGenerated(mTurn);
         else
-            GameLoop.getCore().getPlayerManager().getLocalPlayer().setTurnTailGenerated(!mTurn);
+            GameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).setTurnTailGenerated(!mTurn);
     }
 
     private boolean inRelativeBounds(){
@@ -190,6 +209,14 @@ public class Plane {
 
     public float getTailY(int offset){
         return (float)((mYCoord + mPlaneSprite.getHeight() / 2) - ((mPlaneSprite.getWidth() / 2 - offset) * Math.sin(Math.toRadians(360 - mHeading))));
+    }
+
+    public float getRealTailX(int offset){
+        return (float)((mRealX + mPlaneSprite.getWidth() / 2) + ((mPlaneSprite.getWidth() / 2 - offset) * Math.cos(Math.toRadians(360 - mHeading))));
+    }
+
+    public float getRealTailY(int offset){
+        return (float)((mRealY + mPlaneSprite.getHeight() / 2) - ((mPlaneSprite.getWidth() / 2 - offset) * Math.sin(Math.toRadians(360 - mHeading))));
     }
 
     public float getHeadX(int offset){
@@ -232,6 +259,18 @@ public class Plane {
         return mRealY;
     }
 
+    public void setRealX(float pX){
+        mRealX = pX;
+    }
+
+    public void setRealY(float pY){
+        mRealY = pY;
+    }
+
+    public void setHeading(float pHeading){
+        mHeading = pHeading;
+    }
+
     public float getHeading(){
         return mHeading;
     }
@@ -250,5 +289,9 @@ public class Plane {
 
     public Tail getTail(){
         return mTail;
+    }
+
+    public boolean isLocal(){
+        return mIsLocal;
     }
 }

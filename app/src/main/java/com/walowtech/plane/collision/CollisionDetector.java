@@ -69,8 +69,12 @@ public class CollisionDetector implements GameComponent {
         for(Player p : GameLoop.getCore().getPlayerManager().getPlayers()) {
             for (TailDataPoint dataPoint : p.getPlane().getTail().getTailData()){
                 for(int i = 0; i < hitboxPoints.size(); i++){
+                    int sX = p.getPlane().isLocal() ? (int)dataPoint.getStartX() : (int)(dataPoint.getRealStartX() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenX());
+                    int sY = p.getPlane().isLocal() ? (int)dataPoint.getStartY() : (int)(dataPoint.getRealStartY() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenY());
+                    int eX = p.getPlane().isLocal() ? (int)dataPoint.getEndX() : (int)(dataPoint.getRealEndX() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenX());
+                    int eY = p.getPlane().isLocal() ? (int)dataPoint.getEndY() : (int)(dataPoint.getRealEndY() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenY());
                     if(isIntersecting(hitboxPoints.get(i), hitboxPoints.get(i + 1 >= hitboxPoints.size() ? 0 : i + 1),
-                            new Point((int)dataPoint.getStartX(), (int)dataPoint.getStartY()), new Point((int)dataPoint.getEndX(), (int)dataPoint.getEndY()))){
+                            new Point(sX, sY), new Point(eX, eY))){
                         mCollision.setCollision(CollisionType.LINE);
                         Log.i("COLLISION", "Collision");
                     }
@@ -80,7 +84,7 @@ public class CollisionDetector implements GameComponent {
     }
 
     private void checkPlanes(){
-
+        //TODO: Check plane collision
     }
 
     private boolean isIntersecting(Point a, Point b, Point c, Point d){
