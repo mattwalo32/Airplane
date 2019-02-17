@@ -51,10 +51,12 @@ public class BackgroundGenerator {
         return background;
     }
 
+    /**
+     * Draws a series of random streaks over the background.
+     * @param pWidth Max width of streak
+     * @param pHeight max height of streak
+     */
     private static void drawCloudStreaks(int pWidth, int pHeight) {
-        // Draw base background color
-
-
         Random r = new Random();
 
         // Draw streaks

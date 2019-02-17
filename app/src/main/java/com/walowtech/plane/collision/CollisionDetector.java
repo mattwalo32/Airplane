@@ -14,6 +14,14 @@ import com.walowtech.plane.player.PlayerManager;
 
 import java.util.ArrayList;
 
+/** This class is responsible for all collision detection within the game.
+ *  Collisions with player lines, opponent lines, opponents, and bounds are calculated
+ *  every cycle.
+ *
+ * @author Matthew Walowski
+ * @version 1.0.0
+ * @since 2019-01-07
+ */
 public class CollisionDetector implements GameComponent {
 
     private Collision mCollision;
@@ -43,6 +51,10 @@ public class CollisionDetector implements GameComponent {
         }
     }
 
+    /**
+     * Calculates player hitbox, then checks for collisions
+     * with bounds, lines, and planes
+     */
     public void checkForCollision(){
         initHitbox();
         checkBounds();
@@ -50,6 +62,9 @@ public class CollisionDetector implements GameComponent {
         checkPlanes();
     }
 
+    /**
+     * Calculates a rough hitbox by drawing a polygon between the player's wing tips, front, and tail
+     */
     private void initHitbox(){
         hitboxPoints.clear();
         hitboxPoints.add(new Point((int)mPlane.getTailX(hitboxShrink), (int)mPlane.getTailY(hitboxShrink)));
@@ -59,12 +74,18 @@ public class CollisionDetector implements GameComponent {
         mPlaneHitbox = new RectF(mPlane.getRealX(), mPlane.getRealY(), mPlane.getRealX() + mPlane.getPlaneSprite().getWidth(), mPlane.getRealY() + mPlane.getPlaneSprite().getHeight());
     }
 
+    /**
+     * Checks if player is out of bounds
+     */
     private void checkBounds(){
         if(!RectF.intersects(PlayerManager.GAME_BOUNDS, mPlaneHitbox)){
             mCollision.setCollision(CollisionType.BOUNDS);
         }
     }
 
+    /**
+     * Checks if player has hit any lines
+     */
     private void checkLines(){
         for(Player p : GameLoop.getCore().getPlayerManager().getPlayers()) {
             for (TailDataPoint dataPoint : p.getPlane().getTail().getTailData()){
@@ -76,7 +97,6 @@ public class CollisionDetector implements GameComponent {
                     if(isIntersecting(hitboxPoints.get(i), hitboxPoints.get(i + 1 >= hitboxPoints.size() ? 0 : i + 1),
                             new Point(sX, sY), new Point(eX, eY))){
                         mCollision.setCollision(CollisionType.LINE);
-                        Log.i("COLLISION", "Collision");
                     }
                 }
             }
@@ -87,6 +107,15 @@ public class CollisionDetector implements GameComponent {
         //TODO: Check plane collision
     }
 
+    /**
+     * Checks if two lines drawn between four respective points intersect.
+     *
+     * @param a Start point in line one
+     * @param b End point in line one
+     * @param c Start point in line two
+     * @param d End point in line two
+     * @return
+     */
     private boolean isIntersecting(Point a, Point b, Point c, Point d){
         float denominator = ((b.x - a.x) * (d.y - c.y)) - ((b.y - a.y) * (d.x - c.x));
         float numerator1 = ((a.y - c.y) * (d.x - c.x)) - ((a.x - c.x) * (d.y - c.y));

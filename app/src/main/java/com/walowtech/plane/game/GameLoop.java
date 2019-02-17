@@ -24,7 +24,8 @@ import com.walowtech.plane.util.CodeIntegrityUtils;
  */
 public class GameLoop implements Runnable{
 
-    public static final int TARGET_CYCLE_TIME = 1000 / 60;
+    private final String TAG = getClass().getName();
+    private static final int TARGET_CYCLE_TIME = 1000 / 60;
     private static GameCore CORE;
 
     private long mCycleStartTime;
@@ -36,7 +37,11 @@ public class GameLoop implements Runnable{
     private Context mContext;
     private Activity mActivity;
 
-
+    /**
+     * Constructor for single player
+     * @param pContext Context of calling activity
+     * @param pActivity Calling activity
+     */
     public GameLoop(Context pContext, Activity pActivity){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
         mContext = pContext;
@@ -44,6 +49,12 @@ public class GameLoop implements Runnable{
         CORE = new GameCore(pContext, pActivity);
     }
 
+    /**
+     * Constructor for multiplayer
+     * @param pContext Context of calling activity
+     * @param pActivity Calling activity
+     * @param pMultiplayerAccess Object to access multiplayer data and send messages
+     */
     public GameLoop(Context pContext, Activity pActivity, MultiplayerAccess pMultiplayerAccess){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
         CodeIntegrityUtils.checkNotNull(pMultiplayerAccess, "Multiplayer Access cannot be null");
@@ -52,20 +63,22 @@ public class GameLoop implements Runnable{
         CORE = new GameCore(pContext, pActivity, pMultiplayerAccess);
     }
 
+    /**
+     * This is the main game loop that runs periodically.
+     * All game components update for every loop
+     */
     @Override
     public void run(){
         CORE.init();
         while(mRunning){
             try {
-                //Log.i("TEST", "Running Loop");
                 mCycleStartTime = System.currentTimeMillis();
-
                 CORE.executeUpdate();
                 cycleTime = mCycleStartTime - System.currentTimeMillis();
 
                 //If there is still time left in the cycle, sleep for the remaining time
                 if(cycleTime < TARGET_CYCLE_TIME) {
-                    //Log.i("TEST", "Sleep Time: " + (TARGET_CYCLE_TIME - cycleTime));
+                    Log.v(TAG, "Sleep Time: " + (TARGET_CYCLE_TIME - cycleTime));
                     Thread.sleep(TARGET_CYCLE_TIME - cycleTime);
                 }
             } catch (InterruptedException e) {
@@ -74,28 +87,43 @@ public class GameLoop implements Runnable{
 
             sActualCycleTime = System.currentTimeMillis() - mCycleStartTime;
         }
-        CORE.stop();
+        //CORE.stop();
 
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                GameActivity.createButtons(mContext);
+                GameActivity.showButtons();
             }
         });
 
         //restartGame();
     }
 
+    /**
+     * Starts the game thread
+     */
     public void startGame(){
         mRunning = true;
         gameThread = new Thread(this);
         gameThread.start();
     }
 
+    /**
+     * Restarts the game by hiding buttons and creating new thread
+     */
     public void restartGame(){
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                GameActivity.hideButtons();
+            }
+        });
         startGame();
     }
 
+    /**
+     * Stops game for all participants
+     */
     public static void stopGame(){
         mRunning = false;
 
@@ -103,11 +131,6 @@ public class GameLoop implements Runnable{
             getCore().getMultiplayerAccess().sendToAllReliably(Messages.COLLIDED.toString());
 
         }
-    }
-
-    public void showButtons(){
-        Button btnRestart = new Button(mContext);
-        btnRestart.setText("Play Again");
     }
 
     public static GameCore getCore(){

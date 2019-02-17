@@ -26,6 +26,12 @@ public class Player {
     private boolean turnTailGenerated;
     private boolean straightTailGenerated;
 
+    /**
+     * Player object constructor
+     * @param pContext Calling context
+     * @param pId Id of player
+     * @param pPlayerIsLocal True if player is local, false if opponent
+     */
     public Player(Context pContext, int pId, boolean pPlayerIsLocal){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
 
@@ -34,12 +40,18 @@ public class Player {
         mPlane = new Plane(pContext, pPlayerIsLocal, mPlayerId);
     }
 
+    /**
+     * Initializes player for game
+     */
     public void init(){
         mPlane.init();
         turnTailGenerated = false;
         straightTailGenerated = false;
     }
 
+    /**
+     * Updates player position and tail
+     */
     public void update(){
         mPlane.moveForward(mPlayerSpeed, mPlane.getHeading(), GameLoop.sActualCycleTime);
 

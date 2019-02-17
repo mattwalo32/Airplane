@@ -49,17 +49,21 @@ public class GameClickListener implements View.OnTouchListener {
         MultiplayerAccess access = GameLoop.getCore().getMultiplayerAccess();
         String message = "";
 
+        // If click is on right side
         if(x >= mScreenWidth / 2 && event.getActionMasked() == validEvent) {
             manager.getLocalPlayer().getPlane().setTurning(true, true);
             message = MessageUtils.composeMessage(EventType.START_TURN_RIGHT, (int)plane.getRealX(), (int)plane.getRealY(), (int)plane.getHeading());
+        // If click is on left side
         } else if(event.getActionMasked() == validEvent) {
             manager.getLocalPlayer().getPlane().setTurning(true, false);
             message = MessageUtils.composeMessage(EventType.START_TURN_LEFT, (int)plane.getRealX(), (int)plane.getRealY(), (int)plane.getHeading());
+        // If player has ended touch
         } else if(event.getActionMasked() == MotionEvent.ACTION_UP){
             manager.getLocalPlayer().getPlane().setTurning(false, false);
             message = MessageUtils.composeMessage(EventType.END_TURN, (int)plane.getRealX(), (int)plane.getRealY(), (int)plane.getHeading());
         }
 
+        // Notify participants that click event has been performed
         if(!message.equals("") && access != null)
             access.sendToAll(message);
 

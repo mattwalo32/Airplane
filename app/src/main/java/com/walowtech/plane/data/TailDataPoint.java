@@ -2,8 +2,13 @@ package com.walowtech.plane.data;
 
 import android.graphics.RectF;
 
+
 /**
- * This object contains the data for each point on the curve.
+ * This object contains the data for each point on a curve or line.
+ *
+ * @author Matthew Walowski
+ * @version 1.0.0
+ * @since 2018-08-09
  */
 public class TailDataPoint {
 
@@ -26,6 +31,14 @@ public class TailDataPoint {
     private float mRealEndX;
     private float mRealEndY;
 
+    /**
+     * Constructor for curve
+     *
+     * @param pBounds Bounding rectangle of curve
+     * @param pStartHeading Heading of plane when curve was started
+     * @param pStartAngle Abs start angle of curve
+     * @param pSweepAngle Abs end angle of curve
+     */
     public TailDataPoint(RectF pBounds, float pStartHeading, float pStartAngle, float pSweepAngle){
         mBounds = pBounds;
         mStartHeading = pStartHeading;
@@ -34,6 +47,14 @@ public class TailDataPoint {
         mCurveType = TailCurveType.CURVED;
     }
 
+    /**
+     * Constructor for straight line
+     *
+     * @param pStartX Starting X coordinate of line
+     * @param pStartY Starting Y coordinate of line
+     * @param pEndX Ending X coordinate of line
+     * @param pEndY Ending Y coordinate of line
+     */
     public TailDataPoint(float pStartX, float pStartY, float pEndX, float pEndY){
         mStartX = mRealStartX = pStartX;
         mStartY = mRealStartY = pStartY;

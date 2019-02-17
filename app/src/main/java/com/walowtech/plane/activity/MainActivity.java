@@ -61,15 +61,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Launches the game screen
+     * @param v View that invoked method
+     */
     public void startGame(View v){
         Intent gameIntent = new Intent(this, GameActivity.class);
         startActivity(gameIntent);
     }
 
+    /**
+     * Starts multiplayer process by creating a multiplayer room
+     * @param v VIew that invoked method
+     */
     public void quickGame(View v){
        mMultiplayer.createRoom(null, 1, 1);
     }
 
+    /**
+     * Launches activity to invite players
+     * @param v View that invoked method
+     */
     public void invitePlayers(View v){
         Games.getRealTimeMultiplayerClient(this, GoogleSignIn.getLastSignedInAccount(this))
                 .getSelectOpponentsIntent(1, 1, true)
@@ -82,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void viewInvites(View v){
-
+        //TODO: Implement view invites
     }
 
 }

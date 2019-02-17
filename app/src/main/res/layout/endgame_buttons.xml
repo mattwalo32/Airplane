@@ -8,15 +8,19 @@
     android:gravity="center">
 
     <Button
+        android:id="@+id/play_again"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/play_again"
+        android:visibility="gone"
         android:onClick="playAgain"/>
 
     <Button
+        android:id="@+id/quit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/quit"
+        android:visibility="gone"
         android:onClick="quit"/>
 
 </LinearLayout>

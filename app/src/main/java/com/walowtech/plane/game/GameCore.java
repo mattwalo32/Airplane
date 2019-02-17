@@ -35,6 +35,9 @@ public class GameCore {
         mMultiplayerAccess = pMultiplayerAccess;
     }
 
+    /**
+     * Initializes all game components
+     */
     public void init(){
         for(GameComponent component : mGameComponents)
             component.init();
@@ -45,50 +48,57 @@ public class GameCore {
         MultiplayerAccess.mOpponentPlayAgain = false;
     }
 
+    /**
+     * Updates all game components
+     */
     public void executeUpdate(){
         for(GameComponent component : mGameComponents)
             component.update();
     }
 
+    /**
+     * Stops all game components and game loop
+     */
     public void stop(){
-        for(GameComponent component : mGameComponents)
+        for(GameComponent component : mGameComponents) {
             component.stop();
+        }
 
         GameLoop.stopGame();
     }
 
+    /**
+     * Adds components to list of game components
+     * @param pComponent Component to add
+     */
     public void addGameComponent(GameComponent pComponent){
         CodeIntegrityUtils.checkNotNull(pComponent, "Component must not be null");
         mGameComponents.add(pComponent);
     }
 
     public PlayerManager getPlayerManager(){
-        for(GameComponent component : mGameComponents){
-            if(component.getName().equals(GameComponents.PLAYER_MANAGER.getName()))
-                return (PlayerManager) component;
-        }
-        throw new NullPointerException("Player Manager not found");
+        return (PlayerManager) get(GameComponents.PLAYER_MANAGER);
     }
 
     public GameGraphics getGraphics(){
-        for(GameComponent component : mGameComponents){
-            if(component.getName().equals(GameComponents.GRAPHICS.getName()))
-                return (GameGraphics) component;
+        return (GameGraphics) get(GameComponents.GRAPHICS);
+    }
+
+    /**
+     * Loops through all components and retrieves desired component
+     * @param component Component to get
+     * @return Component that was requested
+     */
+    private GameComponent get(GameComponents component)
+    {
+        for(GameComponent gameComponent : mGameComponents){
+            if(gameComponent.getName().equals(component.getName()))
+                return gameComponent;
         }
-        throw new NullPointerException("Player Manager not found");
+        throw new NullPointerException(component.getName() + " not found");
     }
 
     public MultiplayerAccess getMultiplayerAccess() {
         return mMultiplayerAccess;
     }
-
-    //    public GameComponent getGameComponent(String componentName){
-//        CodeIntegrityUtils.checkNotEmpty(componentName, "Component name must be provided");
-//        for(GameComponent component : mGameComponents){
-//            if(component.getName().equals(componentName))
-//                return component;
-//        }
-//
-//        throw new NullPointerException("There is no game component with the name, " + componentName);
-//    }
 }

@@ -12,6 +12,12 @@ import com.walowtech.plane.game.GameLoop;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/** This class stores all data needed for the tail of the plane
+ *
+ * @author Matthew Walowski
+ * @version 1.0.0
+ * @since 2018-08-09
+ */
 public class Tail {
     private int mTailColor = Color.BLACK;
     private float mTailWidth;
@@ -19,6 +25,11 @@ public class Tail {
     private boolean mIsLocal;
     private int mPlayerId;
 
+    /**
+     * Constructor for new tail objects
+     * @param pIsLocal True if player is local, false if opponent
+     * @param pId Unique ID of player
+     */
     public Tail(boolean pIsLocal, int pId){
         mIsLocal = pIsLocal;
         mPlayerId = pId;
@@ -28,18 +39,24 @@ public class Tail {
         mTailData.add(pData);
     }
 
+    /**
+     * Updates the current line of the player
+     */
     public void updateCurrentLine() {
         Plane plane = GameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).getPlane();
 
+        // Quit if there is no current line
         if(mTailData.size() <= 0)
             return;
 
         TailDataPoint currentPoint = getCurrentDataPoint();
 
         if(currentPoint.getCurveType() == TailCurveType.STRAIGHT) {
+            // Update real coordinates
             currentPoint.setRealEndX((float) (currentPoint.getRealEndX() - plane.getDeltaX()));
             currentPoint.setRealEndY((float) (currentPoint.getRealEndY() - plane.getDeltaY()));
 
+            // Set relative screen coordinates of tail only if the tail belongs to local player
             if (!mIsLocal) return;
 
             if (plane.isMovingX()) {
@@ -60,6 +77,7 @@ public class Tail {
         }
     }
 
+    //TODO: figure out how to draw curves onto the screen
     public void updateCurrentCurve(float pX, float pY, float pAngle){
         TailDataPoint data = getCurrentDataPoint();
         if(data.getCurveType() == TailCurveType.CURVED) {
@@ -104,6 +122,12 @@ public class Tail {
         }
     }
 
+    /**
+     * Moves all of the relative points of a tail. Useful if plane is at screen bounds, but is
+     * still moving across game bounds.
+     * @param dx Change in X
+     * @param dy Change in Y
+     */
     private void shiftAllPoints(double dx, double dy){
         for(int i = 0; i < mTailData.size() - 1; i++) {
             TailDataPoint currentPoint = mTailData.get(i);

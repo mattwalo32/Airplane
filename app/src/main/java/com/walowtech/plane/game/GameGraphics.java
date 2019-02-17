@@ -77,11 +77,15 @@ public class GameGraphics extends SurfaceView implements GameComponent{
         }
     }
 
+    /**
+     * Draws all planes onto canvas
+     * @param canvas Canvas to draw onto
+     */
     private void drawPlane(Canvas canvas){
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(Color.GREEN);
 
-        //TODO: Remove this
+        //TODO: Remove this after done debugging
 //        ArrayList<Point> hitboxPoints = CollisionDetector.hitboxPoints;
 //        for(int i = 0; i < hitboxPoints.size(); i++){
 //            //Log.i("COLLISION", "Hitbox: " + hitboxPoints.size());
@@ -91,26 +95,27 @@ public class GameGraphics extends SurfaceView implements GameComponent{
 //            canvas.drawLine(hitboxPoints.get(i).x, hitboxPoints.get(i).y, hitboxPoints.get(i + 1 >= hitboxPoints.size() ? 0 : i + 1).x, hitboxPoints.get(i + 1 >= hitboxPoints.size() ? 0 : i + 1).y, mPaint);
 //        }
 
-        //canvas.drawArc(new RectF(3, 3, 500, 250), 50, 60, false, mPaint);
+        //Loop through all players to draw
         PlayerManager manager = GameLoop.getCore().getPlayerManager();
         for(Player player : manager.getPlayers()){
             Plane plane = player.getPlane();
 
-
+            // If the player is local, use relative coordinates. If not use real coordinates
             float planeX = plane.isLocal() ? plane.getX() : plane.getRealX() - manager.getLocalPlayer().getPlane().getScreenX();
             float planeY = plane.isLocal() ? plane.getY() : plane.getRealY() - manager.getLocalPlayer().getPlane().getScreenY();
 
-//            Point centerOfRotation = plane.mTurnRight ? new Point((int) (plane.getX() + plane.getPlaneSprite().getWidth() / 2), (int) plane.getY() + plane.getPlaneSprite().getHeight())
-//                    : new Point((int) (plane.getX() + plane.getPlaneSprite().getWidth() / 2), (int) plane.getY());
+            // Rotate plane
             Point centerOfRotation = new Point((int)(planeX + plane.getPlaneSprite().getWidth() / 2), (int)(planeY + plane.getPlaneSprite().getHeight() / 2));
             canvas.save();
             canvas.rotate(plane.getHeading() + 180, centerOfRotation.x, centerOfRotation.y);
             canvas.drawBitmap(plane.getPlaneSprite(), planeX, planeY, mPaint);
             canvas.restore();
 
+            // Draw tail
             mPaint.setColor(plane.getTail().getTailColor());
 
             for(TailDataPoint data : plane.getTail().getTailData()){
+                // Draw all tail data points
                 mPaint.setStrokeWidth(plane.getTail().getTailWidth());
                 if(data.getCurveType() == TailCurveType.STRAIGHT){
                     float startX = plane.isLocal() ? data.getStartX() : data.getRealStartX() - manager.getLocalPlayer().getPlane().getScreenX();

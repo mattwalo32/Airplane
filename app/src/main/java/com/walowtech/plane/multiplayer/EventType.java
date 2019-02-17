@@ -1,5 +1,12 @@
 package com.walowtech.plane.multiplayer;
 
+/** Enum containing all possible multiplayer events that
+ * players should be notified about.
+ *
+ * @author Matthew Walowski
+ * @version 1.0.0
+ * @since 2019-01-07
+ */
 public enum EventType {
 
     MOVE_STRAIGHT(0),

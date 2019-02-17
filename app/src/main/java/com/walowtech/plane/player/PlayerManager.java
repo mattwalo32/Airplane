@@ -63,7 +63,7 @@ public class PlayerManager implements GameComponent {
 
     @Override
     public void update() {
-        for(Player player : mPlayers)
+        for(Player player : new ArrayList<Player>(mPlayers))
             player.update();
     }
 

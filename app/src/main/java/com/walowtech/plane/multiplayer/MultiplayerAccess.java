@@ -40,6 +40,15 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+/** This class manages the all the multiplayer aspect of the game.
+ *
+ * This class exposes methods to sign in users, create rooms,
+ * handle room callbacks, invite players, leave rooms, and send messages
+ *
+ * @author Matthew Walowski
+ * @version 1.0.0
+ * @since 2019-01-07
+ */
 public class MultiplayerAccess {
 
     private static final int MIN_PLAYERS = 2;
@@ -176,7 +185,8 @@ public class MultiplayerAccess {
                 }else if(message.equals(Messages.PLAY_AGAIN.toString())) {
                     mOpponentPlayAgain = true;
                 }else if(message.equals(Messages.COLLIDED.toString())){
-                    GameLoop.getCore().stop();
+                    if(GameLoop.mRunning)
+                        GameLoop.getCore().stop();
                 }else if(message.matches("[[-]*[0-9]+,]*")){
                     MessageUtils.parseMessage(message, GameLoop.getCore().getPlayerManager().getPlayers().get(1).getPlane());
                 }

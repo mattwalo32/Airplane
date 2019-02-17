@@ -59,6 +59,12 @@ public class Plane {
     private DisplayMetrics displayMetrics;
     private Tail mTail;
 
+    /**
+     * Creates plane object
+     * @param pContext Context from which plane was created
+     * @param pLocal True if player is local, false if player is opponent
+     * @param pId Number identifying player
+     */
     public Plane(Context pContext, boolean pLocal, int pId){
         CodeIntegrityUtils.checkNotNull(pContext, "Context must not be null");
         displayMetrics = pContext.getResources().getDisplayMetrics();
@@ -165,6 +171,12 @@ public class Plane {
 //        mPlaneSprite = Bitmap.createBitmap(mPlaneOriginalSprite, 0, 0, mPlaneOriginalSprite.getWidth(), mPlaneOriginalSprite.getHeight(), matrix, true);
     }
 
+    /**
+     * Sets the plane to turn
+     *
+     * @param pTurn True if starting turn, false if ending turn
+     * @param pDirection True if turning right, false if turning left
+     */
     public void setTurning(boolean pTurn, boolean pDirection){
         mTurn = pTurn;
         mTurnRight = pDirection;

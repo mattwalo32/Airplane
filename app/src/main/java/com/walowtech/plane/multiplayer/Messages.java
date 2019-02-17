@@ -1,5 +1,11 @@
 package com.walowtech.plane.multiplayer;
 
+/** Enum contains many messages that may be sent and received to opponents
+ *
+ * @author Matthew Walowski
+ * @version 1.0.0
+ * @since 2019-01-07
+ */
 public enum Messages {
     START_GAME("START_GAME"),
     STARTING_TOP_LEFT("TL"),
