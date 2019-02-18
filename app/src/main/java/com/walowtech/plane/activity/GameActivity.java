@@ -75,7 +75,9 @@ public class GameActivity extends Activity {
         GameLoop.getCore().getGraphics().setOnTouchListener(clickListener);
 
         gameLoop.startGame();
-        showReadyLayout();
+
+        if(mMuliplayer)
+            showReadyLayout();
     }
 
     /**
@@ -137,6 +139,7 @@ public class GameActivity extends Activity {
      */
     public void onReady(View v)
     {
+        if(mMultiplayerAccess != null)
         mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
         MultiplayerAccess.mClientReady = true;
         hideReadyLayout();
@@ -167,10 +170,6 @@ public class GameActivity extends Activity {
                         {
                             gameLoop.restartGame();
                             checking = false;
-                        }
-                        else if (false) { //TODO: Update to check if player left
-                            checking = false;
-                            mMultiplayerAccess.leaveRoom();
                         }
 
                         try {

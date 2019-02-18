@@ -75,6 +75,7 @@ public class MultiplayerAccess {
     public static boolean mStartingTopLeft = false;
     public static boolean mClientPlayAgain = false;
     public static boolean mOpponentPlayAgain = false;
+    public static boolean sMustBeInitialized = false;
     private boolean mWaitingRoomFinishedFromCode = false;
 
     public MultiplayerAccess(Context pContext, Activity pActivity){
@@ -145,7 +146,11 @@ public class MultiplayerAccess {
                 Log.i("TEST", "INSTANCE OF" + (mActivity instanceof GameActivity));
 
                 if(mActivity instanceof GameActivity)
+                {
                     ((GameActivity) mActivity).exitMatch();
+                    leaveRoom();
+                    resetState();
+                }
             }
 
             @Override
@@ -489,7 +494,7 @@ public class MultiplayerAccess {
         return connectedPlayers >= MIN_PLAYERS && !mPlaying;
     }
 
-    public  boolean shouldCancelGame(Room room) {
+    public boolean shouldCancelGame(Room room) {
 
         int activeParticipants = 0;
 
@@ -501,5 +506,21 @@ public class MultiplayerAccess {
 
         //TODO: Add cancel button to UI
         return activeParticipants >= MIN_PLAYERS;
+    }
+
+    private void resetState()
+    {
+        sMustBeInitialized = true;
+        mRoom = null;
+        mPlaying = false;
+        mJoinedRoomConfig = null;
+        mClientPlayAgain = false;
+        mOpponentPlayAgain = false;
+        mClientReady = false;
+        mOpponentReady = false;
+        mStartingTopLeft = true;
+        mWaitingRoomFinishedFromCode = false;
+        mClientParticipantId = null;
+        mActivity = null;
     }
 }

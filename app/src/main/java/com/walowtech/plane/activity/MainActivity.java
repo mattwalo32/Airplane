@@ -40,6 +40,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if(MultiplayerAccess.sMustBeInitialized)
+        {
+            mMultiplayer = new MultiplayerAccess(this, this);
+            MultiplayerAccess.sMustBeInitialized = false;
+        }
+
         if(!mMultiplayer.isSignedIn())
             mMultiplayer.silentlySignIn();
     }

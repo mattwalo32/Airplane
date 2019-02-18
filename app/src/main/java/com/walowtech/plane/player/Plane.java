@@ -140,6 +140,7 @@ public class Plane {
 
         // The relative coordinates should be moved if the plane is near the center of the screen or
         // if the plane is not near the center of the screen but the next movement will bring it closer in either dimension.
+        //TODO: remove comment
         mMovingX = (mTurn || inRelativeBounds() || (
                 (getX() + mPlaneSprite.getWidth() <= mRelativeBounds.left && getX() - mDeltaX >= getX())
                         || (getX() >= mRelativeBounds.right && getX() - mDeltaX <= getX())

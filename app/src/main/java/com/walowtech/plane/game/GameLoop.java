@@ -33,12 +33,11 @@ public class GameLoop implements Runnable{
     private long cycleTime;
     public static long sActualCycleTime = 0;
     public static boolean mRunning;
+    private boolean mMultiplayerMode;
 
     private Thread gameThread;
     private Context mContext;
     private Activity mActivity;
-
-    private MultiplayerAccess mMultiplayerAccess;
 
     /**
      * Constructor for single player
@@ -50,6 +49,7 @@ public class GameLoop implements Runnable{
         mContext = pContext;
         mActivity = pActivity;
         CORE = new GameCore(pContext, pActivity);
+        mMultiplayerMode = false;
     }
 
     /**
@@ -63,8 +63,8 @@ public class GameLoop implements Runnable{
         CodeIntegrityUtils.checkNotNull(pMultiplayerAccess, "Multiplayer Access cannot be null");
         mContext = pContext;
         mActivity = pActivity;
-        mMultiplayerAccess = pMultiplayerAccess;
         CORE = new GameCore(pContext, pActivity, pMultiplayerAccess);
+        mMultiplayerMode = true;
     }
 
     /**
@@ -76,23 +76,24 @@ public class GameLoop implements Runnable{
         CORE.init();
 
         // Wait for player to be ready
-        while(!MultiplayerAccess.mOpponentReady || !MultiplayerAccess.mClientReady)
+        if(mMultiplayerMode)
         {
+            while (!MultiplayerAccess.mOpponentReady || !MultiplayerAccess.mClientReady) {
 //            mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
-            try{
-                Thread.sleep(50);
-            }catch (Exception e){
-                e.printStackTrace();
+                try {
+                    Thread.sleep(50);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+            // Remove indicator if it is up
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    GameActivity.hideReadyLayout();
+                }
+            });
         }
-
-        // Remove indicator if it is up
-        mActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                GameActivity.hideReadyLayout();
-            }
-        });
 
         while(mRunning){
             try {

@@ -23,7 +23,7 @@ public class PlayerManager implements GameComponent {
 
     public static final int BASE_PLAYER_SPEED = 250;
     public static final int BASE_PLAYER_TURN_SPEED = 190;
-    public static final int BASE_TAIL_WIDTH = 3;
+    public static final int BASE_TAIL_WIDTH = 4;
     public static final int RIGHT_GAME_BOUND = 2000;
     public static final int BOTTOM_GAME_BOUND = 3000;
     public static RectF GAME_BOUNDS;
