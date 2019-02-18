@@ -58,10 +58,10 @@ public class MultiplayerAccess {
     private static final int RC_WAITING_ROOM = 9007;
 
     private Context mContext;
-    private Activity mActivity;
+    private static Activity mActivity;
 
     private String mClientParticipantId;
-    private RoomConfig mJoinedRoomConfig;
+    private static RoomConfig mJoinedRoomConfig;
     private Room mRoom;
 
     private RoomUpdateCallback mRoomUpdateCallback;
@@ -141,6 +141,11 @@ public class MultiplayerAccess {
             @Override
             public void onLeftRoom(int code, @NonNull String s) {
                 Toast.makeText(mContext, "Room has been left.", Toast.LENGTH_SHORT).show();
+
+                Log.i("TEST", "INSTANCE OF" + (mActivity instanceof GameActivity));
+
+                if(mActivity instanceof GameActivity)
+                    ((GameActivity) mActivity).exitMatch();
             }
 
             @Override
@@ -172,10 +177,8 @@ public class MultiplayerAccess {
                     if(mClientReady){
                         // This device has loaded screen and is ready to start
                         Log.i("MULTIPLAYER", "Telling to start now");
-                        mStartingTopLeft = true;
                         sendToAllReliably(Messages.START_NOW.toString());
                     }else{
-                        mStartingTopLeft = false;
                         Log.i("MULTIPLAYER", "Client is not ready");
                     }
                 }else if(message.equals(Messages.START_NOW.toString())){
@@ -289,10 +292,20 @@ public class MultiplayerAccess {
         };
     }
 
+    /**
+     * Leave current room
+     */
     public void leaveRoom(){
-        Games.getRealTimeMultiplayerClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
-        .leave(mJoinedRoomConfig, mRoom.getRoomId());
-        mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        try
+        {
+            Games.getRealTimeMultiplayerClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
+                    .leave(mJoinedRoomConfig, mRoom.getRoomId());
+            mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        catch(NullPointerException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void onSignInResult(Intent data){
@@ -390,9 +403,6 @@ public class MultiplayerAccess {
                         .sendReliableMessage(bytes, mRoom.getRoomId(), participantId, null).addOnCompleteListener(new OnCompleteListener<Integer>() {
                             @Override
                             public void onComplete(@NonNull Task<Integer> task) {
-                                if(pMessage.equals(Messages.READY_TO_START.toString())){
-                                    mClientReady = true;
-                                }
                             }
                         });
             }
@@ -415,12 +425,48 @@ public class MultiplayerAccess {
     private void startGame(){
         if(!mPlaying && mClientParticipantId != null) {
             Toast.makeText(mContext, "Starting Match", Toast.LENGTH_SHORT).show();
+            determineStartinPosition();
             Intent gameIntent = new Intent(mContext, GameActivity.class);
             gameIntent.putExtra("ROOM", mRoom);
-            Log.i("MULTIPLAYER", "Putting Extra: " + mClientParticipantId);
             gameIntent.putExtra("USERID", mClientParticipantId);
             mActivity.startActivity(gameIntent);
             mPlaying = true;
+        }
+    }
+
+    /**
+     * Determines where players start based on their unique player ID
+     */
+    private void determineStartinPosition()
+    {
+        char[] opponentID = null;
+        char[] clientID = mClientParticipantId.toCharArray();
+        ArrayList<String> playerIDs = mRoom.getParticipantIds();
+
+        for(String id : playerIDs)
+        {
+            if(!id.equals(mClientParticipantId))
+                opponentID = id.toCharArray();
+        }
+
+        if(opponentID == null)
+        {
+            mStartingTopLeft = true;
+            return;
+        }
+
+        if(clientID.length == opponentID.length)
+        {
+            for (int i = 0; i < clientID.length; i++) {
+                if (Character.getNumericValue(opponentID[i]) != Character.getNumericValue(clientID[i]))
+                {
+                    mStartingTopLeft = Character.getNumericValue(opponentID[i]) > Character.getNumericValue(clientID[i]);
+                }
+            }
+        }
+        else
+        {
+            mStartingTopLeft = clientID.length > opponentID.length;
         }
     }
 

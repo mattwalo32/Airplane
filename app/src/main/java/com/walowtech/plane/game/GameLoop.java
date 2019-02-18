@@ -6,6 +6,7 @@ import android.util.Log;
 import android.widget.Button;
 
 import com.walowtech.plane.activity.GameActivity;
+import com.walowtech.plane.activity.MainActivity;
 import com.walowtech.plane.multiplayer.EventType;
 import com.walowtech.plane.multiplayer.MessageUtils;
 import com.walowtech.plane.multiplayer.Messages;
@@ -37,6 +38,8 @@ public class GameLoop implements Runnable{
     private Context mContext;
     private Activity mActivity;
 
+    private MultiplayerAccess mMultiplayerAccess;
+
     /**
      * Constructor for single player
      * @param pContext Context of calling activity
@@ -60,6 +63,7 @@ public class GameLoop implements Runnable{
         CodeIntegrityUtils.checkNotNull(pMultiplayerAccess, "Multiplayer Access cannot be null");
         mContext = pContext;
         mActivity = pActivity;
+        mMultiplayerAccess = pMultiplayerAccess;
         CORE = new GameCore(pContext, pActivity, pMultiplayerAccess);
     }
 
@@ -70,6 +74,26 @@ public class GameLoop implements Runnable{
     @Override
     public void run(){
         CORE.init();
+
+        // Wait for player to be ready
+        while(!MultiplayerAccess.mOpponentReady || !MultiplayerAccess.mClientReady)
+        {
+//            mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
+            try{
+                Thread.sleep(50);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        // Remove indicator if it is up
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                GameActivity.hideReadyLayout();
+            }
+        });
+
         while(mRunning){
             try {
                 mCycleStartTime = System.currentTimeMillis();
@@ -92,7 +116,7 @@ public class GameLoop implements Runnable{
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                GameActivity.showButtons();
+                GameActivity.showEndgameButtons();
             }
         });
 
@@ -112,10 +136,12 @@ public class GameLoop implements Runnable{
      * Restarts the game by hiding buttons and creating new thread
      */
     public void restartGame(){
+        MultiplayerAccess.mClientPlayAgain = false;
+        MultiplayerAccess.mOpponentPlayAgain = false;
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                GameActivity.hideButtons();
+                GameActivity.hideEndgameButtons();
             }
         });
         startGame();

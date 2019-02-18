@@ -81,28 +81,42 @@ public class Plane {
 
     public void init(){
 
+        mTail.getTailData().clear();
+
         boolean startLeft = false;
 
         if(GameLoop.getCore().getMultiplayerAccess() != null)
             startLeft =  mIsLocal == MultiplayerAccess.mStartingTopLeft;
 
-
-        Log.i("TEST", "Starting Left: " + startLeft + " Local: " + mIsLocal);
-
         mWidth = mPlaneSprite.getWidth();
         mHeight = mPlaneSprite.getHeight();
 
         relativeMargin = 2 * displayMetrics.widthPixels / 5;
+
+        mScreenBounds = new RectF(0, (PlayerManager.GAME_BOUNDS.bottom - displayMetrics.heightPixels) / 2, displayMetrics.widthPixels, (PlayerManager.GAME_BOUNDS.bottom + displayMetrics.heightPixels) / 2);
+
+        if(mIsLocal)
+        {
+            if(!startLeft)
+            {
+                mScreenBounds.left = PlayerManager.GAME_BOUNDS.right - displayMetrics.widthPixels;
+                mScreenBounds.right = PlayerManager.GAME_BOUNDS.right;
+            }
+
+            mXCoord = startLeft ? 200 : displayMetrics.widthPixels - 200;
+            mRealX = startLeft ? 200 : PlayerManager.GAME_BOUNDS.right - 200;
+        }
+        else
+        {
+            mXCoord = mRealX = startLeft ? 200 : PlayerManager.GAME_BOUNDS.right - 200;
+        }
+
         mRelativeBounds = new RectF(relativeMargin, 2 * relativeMargin, displayMetrics.widthPixels - relativeMargin, displayMetrics.heightPixels - 2 * relativeMargin);
-        mScreenBounds = new RectF(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels);
 
-        mXCoord = mRealX =  200;
-        //mXCoord = startLeft ? 100  : mScreenBounds.right - 200;
-        mRealY = mYCoord = startLeft ? 100: 300;
-        //mYCoord =  mScreenBounds.bottom / 2;
+        mYCoord = (displayMetrics.heightPixels - mPlaneSprite.getHeight()) / 2.0f;
+        mRealY = (PlayerManager.GAME_BOUNDS.bottom - mPlaneSprite.getHeight()) / 2.0f;
 
-        //TODO: Change to 90
-        mHeading =  180;
+        mHeading =  startLeft ? 180 : 0;
         mTurn = false;
         mTurnRight = false;
     }

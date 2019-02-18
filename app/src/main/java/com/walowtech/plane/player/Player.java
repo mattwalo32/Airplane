@@ -79,7 +79,7 @@ public class Player {
     }
 
     public void stop(){
-        mPlane.getTail().getTailData().clear();
+
     }
 
     public void setPlayerSpeed(float pSpeed){

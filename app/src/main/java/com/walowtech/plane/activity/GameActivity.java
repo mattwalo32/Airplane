@@ -7,9 +7,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.google.android.gms.games.multiplayer.realtime.Room;
+import com.google.android.gms.games.multiplayer.realtime.RoomConfig;
 import com.walowtech.plane.Input.GameClickListener;
 import com.walowtech.plane.R;
 import com.walowtech.plane.game.GameLoop;
@@ -51,13 +54,12 @@ public class GameActivity extends Activity {
             // Multi Player
             mMuliplayer = true;
             mMultiplayerAccess = new MultiplayerAccess(this, this, mRoom, mClientParticipationID);
+            MultiplayerAccess.mClientReady = false;
             gameLoop = new GameLoop(this, this, mMultiplayerAccess);
-            new Thread(new opponentChecker()).start();
         }else{
             Log.i("MULTIPLAYER", "In singleplayer mode");
             // Single Player
             gameLoop = new GameLoop(this, this);
-            gameLoop.startGame();
         }
 
         // Set up view so buttons can be added on top later
@@ -65,21 +67,30 @@ public class GameActivity extends Activity {
         mRoot = findViewById(R.id.root);
         mRoot.addView(GameLoop.getCore().getGraphics());
         View btns = LayoutInflater.from(this).inflate(R.layout.endgame_buttons, mRoot, false);
+        View readyBtns = LayoutInflater.from(this).inflate(R.layout.ready_to_start_layout, mRoot, false);
         mRoot.addView(btns);
+        mRoot.addView(readyBtns);
 
         clickListener = new GameClickListener(this);
         GameLoop.getCore().getGraphics().setOnTouchListener(clickListener);
 
+        gameLoop.startGame();
+        showReadyLayout();
+    }
 
-        if(mMuliplayer){
-            mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
-        }
+    /**
+     * Leave current match by killing current activity
+     */
+    public void exitMatch()
+    {
+        Toast.makeText(this, "Game has ended because players left", Toast.LENGTH_LONG).show();
+        finish();
     }
 
     /**
      * Shows buttons so that users can request to play again.
      */
-    public static void showButtons(){
+    public static void showEndgameButtons(){
         Button btnPlayAgain = mRoot.findViewById(R.id.play_again);
         btnPlayAgain.setVisibility(View.VISIBLE);
         Button btnQuit = mRoot.findViewById(R.id.quit);
@@ -89,11 +100,46 @@ public class GameActivity extends Activity {
     /**
      * Hides the "play again" and "quit" buttons from view
      */
-    public static void hideButtons(){
+    public static void hideEndgameButtons(){
         Button btnPlayAgain = mRoot.findViewById(R.id.play_again);
         btnPlayAgain.setVisibility(View.GONE);
         Button btnQuit = mRoot.findViewById(R.id.quit);
         btnQuit.setVisibility(View.GONE);
+    }
+
+    /**
+     * Shows buttons so that users can ready up
+     */
+    public static void showReadyLayout(){
+        Button btnPlayAgain = mRoot.findViewById(R.id.ready);
+        ProgressBar indicator = mRoot.findViewById(R.id.loading_indicator);
+        btnPlayAgain.setVisibility(View.VISIBLE);
+        indicator.setVisibility(View.GONE);
+    }
+
+    /**
+     * Hides the ready button from the user
+     */
+    public static void hideReadyLayout(){
+        Button btnPlayAgain = mRoot.findViewById(R.id.ready);
+        ProgressBar indicator = mRoot.findViewById(R.id.loading_indicator);
+        btnPlayAgain.setVisibility(View.GONE);
+
+        if(MultiplayerAccess.mOpponentReady)
+            indicator.setVisibility(View.GONE);
+        else
+            indicator.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Notifies opponent that player is ready
+     * @param v View that invoked method
+     */
+    public void onReady(View v)
+    {
+        mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
+        MultiplayerAccess.mClientReady = true;
+        hideReadyLayout();
     }
 
     /**
@@ -118,7 +164,10 @@ public class GameActivity extends Activity {
                     boolean checking = true;
                     while(checking) {
                         if (MultiplayerAccess.mOpponentPlayAgain)
+                        {
                             gameLoop.restartGame();
+                            checking = false;
+                        }
                         else if (false) { //TODO: Update to check if player left
                             checking = false;
                             mMultiplayerAccess.leaveRoom();

@@ -46,8 +46,8 @@ public class PlayerManager implements GameComponent {
 
     @Override
     public void init() {
-        // If this is multiplayer
-        if(GameLoop.getCore().getMultiplayerAccess() != null){
+        // If this is multiplayer and a plane is not already added
+        if(GameLoop.getCore().getMultiplayerAccess() != null && mPlayers.size() < 2){
             Player p = new Player(mContext, 1, false);
             p.getPlane().getTail().setTailColor(Color.GREEN);
             addPlayer(p);
@@ -63,13 +63,13 @@ public class PlayerManager implements GameComponent {
 
     @Override
     public void update() {
-        for(Player player : new ArrayList<Player>(mPlayers))
+        for(Player player : new ArrayList<>(mPlayers))
             player.update();
     }
 
     @Override
     public void stop() {
-        for(Player player : mPlayers)
+        for(Player player : new ArrayList<>(mPlayers))
             player.stop();
     }
 

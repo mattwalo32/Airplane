@@ -27,7 +27,6 @@ public class GameCore {
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
         addGameComponent(new PlayerManager(pContext));
         addGameComponent(new GameGraphics(pContext, pActivity));
-        //TODO: Add components
     }
 
     public GameCore(Context pContext, Activity pActivity, MultiplayerAccess pMultiplayerAccess){
