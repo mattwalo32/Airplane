@@ -86,19 +86,28 @@ public class GameGraphics extends SurfaceView implements GameComponent{
         mPaint.setColor(Color.GREEN);
 
         //TODO: Remove this after done debugging
-//        ArrayList<Point> hitboxPoints = CollisionDetector.hitboxPoints;
-//        for(int i = 0; i < hitboxPoints.size(); i++){
-//            //Log.i("COLLISION", "Hitbox: " + hitboxPoints.size());
-//            mPaint.setColor(Color.RED);
-//            mPaint.setStrokeWidth(10.0f);
-//            if(hitboxPoints.size() == 4)
-//            canvas.drawLine(hitboxPoints.get(i).x, hitboxPoints.get(i).y, hitboxPoints.get(i + 1 >= hitboxPoints.size() ? 0 : i + 1).x, hitboxPoints.get(i + 1 >= hitboxPoints.size() ? 0 : i + 1).y, mPaint);
-//        }
+
 
         //Loop through all players to draw
         PlayerManager manager = GameLoop.getCore().getPlayerManager();
         for(Player player : manager.getPlayers()){
             Plane plane = player.getPlane();
+
+//            ArrayList<Point> hitboxPoints = plane.getHitboxPoints();
+//            for(int i = 0; i < hitboxPoints.size(); i++){
+//                Log.i("PLANE", "Hitbox: " + hitboxPoints.size());
+//                mPaint.setColor(Color.RED);
+//                mPaint.setStrokeWidth(10.0f);
+//                try {
+//
+//                    if (hitboxPoints.size() == 4)
+//                        canvas.drawLine(hitboxPoints.get(i).x, hitboxPoints.get(i).y, hitboxPoints.get(i + 1 >= hitboxPoints.size() ? 0 : i + 1).x, hitboxPoints.get(i + 1 >= hitboxPoints.size() ? 0 : i + 1).y, mPaint);
+//                }
+//                catch(Exception e)
+//                {
+//
+//                }
+//            }
 
             // If the player is local, use relative coordinates. If not use real coordinates
             float planeX = plane.isLocal() ? plane.getX() : plane.getRealX() - manager.getLocalPlayer().getPlane().getScreenX();

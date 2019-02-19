@@ -27,6 +27,7 @@ public class GameLoop implements Runnable{
 
     private final String TAG = getClass().getName();
     private static final int TARGET_CYCLE_TIME = 1000 / 60;
+    private static final int MAX_CYCLES_TO_SEND = 30;
     private static GameCore CORE;
 
     private long mCycleStartTime;
@@ -73,13 +74,14 @@ public class GameLoop implements Runnable{
      */
     @Override
     public void run(){
+        int cyclesUntilUpdate = 0;
+
         CORE.init();
 
         // Wait for player to be ready
         if(mMultiplayerMode)
         {
             while (!MultiplayerAccess.mOpponentReady || !MultiplayerAccess.mClientReady) {
-//            mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
                 try {
                     Thread.sleep(50);
                 } catch (Exception e) {
@@ -106,6 +108,14 @@ public class GameLoop implements Runnable{
                     Log.v(TAG, "Sleep Time: " + (TARGET_CYCLE_TIME - cycleTime));
                     Thread.sleep(TARGET_CYCLE_TIME - cycleTime);
                 }
+
+                //TODO: Clean this up, take out of loop
+                cyclesUntilUpdate--;
+                if(cyclesUntilUpdate <= 0)
+                {
+                    getCore().getPlayerManager().getLocalPlayer().getPlane().notifyLocationToAll();
+                }
+                cyclesUntilUpdate = MAX_CYCLES_TO_SEND;
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

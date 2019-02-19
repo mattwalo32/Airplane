@@ -17,6 +17,8 @@ import android.util.Log;
 import com.google.android.gms.games.Game;
 import com.walowtech.plane.R;
 import com.walowtech.plane.game.GameLoop;
+import com.walowtech.plane.multiplayer.EventType;
+import com.walowtech.plane.multiplayer.MessageUtils;
 import com.walowtech.plane.multiplayer.MultiplayerAccess;
 import com.walowtech.plane.util.CodeIntegrityUtils;
 import com.walowtech.plane.util.ConversionUtils;
@@ -145,7 +147,6 @@ public class Plane {
 
         // The relative coordinates should be moved if the plane is near the center of the screen or
         // if the plane is not near the center of the screen but the next movement will bring it closer in either dimension.
-        //TODO: remove comment
         mMovingX = (mTurn || inRelativeBounds() || (
                 (getX() + mPlaneSprite.getWidth() <= mRelativeBounds.left && getX() - mDeltaX >= getX())
                         || (getX() >= mRelativeBounds.right && getX() - mDeltaX <= getX())
@@ -207,6 +208,14 @@ public class Plane {
             GameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).setTurnTailGenerated(!mTurn);
     }
 
+    /**
+     * Sends a message to all of the game participants telling the current status of the plane
+     */
+    public void notifyLocationToAll()
+    {
+        GameLoop.getCore().getMultiplayerAccess().sendToAll(MessageUtils.composeMessage(EventType.UPDATE_NOW, (int)mRealX, (int)mRealY, (int)mHeading));
+    }
+
     private boolean inRelativeBounds(){
         return RectF.intersects(mRelativeBounds, new RectF(getX(), getY(), getX() + mPlaneSprite.getWidth(), getY() + mPlaneSprite.getHeight()));
     }
@@ -255,24 +264,48 @@ public class Plane {
         return (float)((mXCoord + mPlaneSprite.getWidth() / 2) + ((mPlaneSprite.getWidth() / 2 - offset) * Math.cos(Math.toRadians(180 - mHeading))));
     }
 
+    public float getRealHeadX(int offset){
+        return (float)((mRealX + mPlaneSprite.getWidth() / 2) + ((mPlaneSprite.getWidth() / 2 - offset) * Math.cos(Math.toRadians(180 - mHeading))));
+    }
+
     public float getHeadY(int offset){
         return (float)((mYCoord + mPlaneSprite.getHeight() / 2) - ((mPlaneSprite.getWidth() / 2 - offset) * Math.sin(Math.toRadians(180 - mHeading))));
+    }
+
+    public float getRealHeadY(int offset){
+        return (float)((mRealY + mPlaneSprite.getHeight() / 2) - ((mPlaneSprite.getWidth() / 2 - offset) * Math.sin(Math.toRadians(180 - mHeading))));
     }
 
     public float getLeftWingX(int offset){
         return (float)((mXCoord + mPlaneSprite.getWidth() / 2) + ((mPlaneSprite.getWidth() / 2 - offset) * Math.cos(Math.toRadians(290 - mHeading))));
     }
 
+    public float getRealLeftWingX(int offset){
+        return (float)((mRealX + mPlaneSprite.getWidth() / 2) + ((mPlaneSprite.getWidth() / 2 - offset) * Math.cos(Math.toRadians(290 - mHeading))));
+    }
+
     public float getLeftWingY(int offset){
         return (float)((mYCoord + mPlaneSprite.getHeight() / 2) - ((mPlaneSprite.getWidth() / 2 - offset) * Math.sin(Math.toRadians(290 - mHeading))));
+    }
+
+    public float getRealLeftWingY(int offset){
+        return (float)((mRealY + mPlaneSprite.getHeight() / 2) - ((mPlaneSprite.getWidth() / 2 - offset) * Math.sin(Math.toRadians(290 - mHeading))));
     }
 
     public float getRightWingX(int offset){
         return (float)((mXCoord + mPlaneSprite.getWidth() / 2) + ((mPlaneSprite.getWidth() / 2 - offset) * Math.cos(Math.toRadians(70 - mHeading))));
     }
 
+    public float getRealRightWingX(int offset){
+        return (float)((mRealX + mPlaneSprite.getWidth() / 2) + ((mPlaneSprite.getWidth() / 2 - offset) * Math.cos(Math.toRadians(70 - mHeading))));
+    }
+
     public float getRightWingY(int offset){
         return (float)((mYCoord + mPlaneSprite.getHeight() / 2) - ((mPlaneSprite.getWidth() / 2 - offset) * Math.sin(Math.toRadians(70 - mHeading))));
+    }
+
+    public float getRealRightWingY(int offset){
+        return (float)((mRealY + mPlaneSprite.getHeight() / 2) - ((mPlaneSprite.getWidth() / 2 - offset) * Math.sin(Math.toRadians(70 - mHeading))));
     }
 
     public float getScreenX(){
