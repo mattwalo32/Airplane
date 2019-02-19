@@ -27,9 +27,6 @@ public class CollisionDetector implements GameComponent {
     private Collision mCollision;
     private Plane mPlane;
     private RectF mPlaneHitbox;
-    //TODO: Make private again
-    public static ArrayList<Point> hitboxPoints = new ArrayList<>();
-
     private int hitboxShrink = 15;
 
     public CollisionDetector(Plane p){
@@ -66,11 +63,11 @@ public class CollisionDetector implements GameComponent {
      * Calculates a rough hitbox by drawing a polygon between the player's wing tips, front, and tail
      */
     private void initHitbox(){
-        hitboxPoints.clear();
-        hitboxPoints.add(new Point((int)mPlane.getTailX(hitboxShrink), (int)mPlane.getTailY(hitboxShrink)));
-        hitboxPoints.add(new Point((int)mPlane.getLeftWingX(hitboxShrink), (int)mPlane.getLeftWingY(hitboxShrink)));
-        hitboxPoints.add(new Point((int)mPlane.getHeadX(hitboxShrink), (int)mPlane.getHeadY(hitboxShrink)));
-        hitboxPoints.add(new Point((int)mPlane.getRightWingX(hitboxShrink), (int)mPlane.getRightWingY(hitboxShrink)));
+        mPlane.getHitboxPoints().clear();
+        mPlane.getHitboxPoints().add(new Point((int)mPlane.getTailX(hitboxShrink), (int)mPlane.getTailY(hitboxShrink)));
+        mPlane.getHitboxPoints().add(new Point((int)mPlane.getLeftWingX(hitboxShrink), (int)mPlane.getLeftWingY(hitboxShrink)));
+        mPlane.getHitboxPoints().add(new Point((int)mPlane.getHeadX(hitboxShrink), (int)mPlane.getHeadY(hitboxShrink)));
+        mPlane.getHitboxPoints().add(new Point((int)mPlane.getRightWingX(hitboxShrink), (int)mPlane.getRightWingY(hitboxShrink)));
         mPlaneHitbox = new RectF(mPlane.getRealX(), mPlane.getRealY(), mPlane.getRealX() + mPlane.getPlaneSprite().getWidth(), mPlane.getRealY() + mPlane.getPlaneSprite().getHeight());
     }
 
@@ -89,12 +86,12 @@ public class CollisionDetector implements GameComponent {
     private void checkLines(){
         for(Player p : GameLoop.getCore().getPlayerManager().getPlayers()) {
             for (TailDataPoint dataPoint : p.getPlane().getTail().getTailData()){
-                for(int i = 0; i < hitboxPoints.size(); i++){
+                for(int i = 0; i < mPlane.getHitboxPoints().size(); i++){
                     int sX = p.getPlane().isLocal() ? (int)dataPoint.getStartX() : (int)(dataPoint.getRealStartX() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenX());
                     int sY = p.getPlane().isLocal() ? (int)dataPoint.getStartY() : (int)(dataPoint.getRealStartY() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenY());
                     int eX = p.getPlane().isLocal() ? (int)dataPoint.getEndX() : (int)(dataPoint.getRealEndX() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenX());
                     int eY = p.getPlane().isLocal() ? (int)dataPoint.getEndY() : (int)(dataPoint.getRealEndY() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenY());
-                    if(isIntersecting(hitboxPoints.get(i), hitboxPoints.get(i + 1 >= hitboxPoints.size() ? 0 : i + 1),
+                    if(isIntersecting(mPlane.getHitboxPoints().get(i), mPlane.getHitboxPoints().get(i + 1 >= mPlane.getHitboxPoints().size() ? 0 : i + 1),
                             new Point(sX, sY), new Point(eX, eY))){
                         mCollision.setCollision(CollisionType.LINE);
                     }
@@ -105,6 +102,20 @@ public class CollisionDetector implements GameComponent {
 
     private void checkPlanes(){
         //TODO: Check plane collision
+        for(Player player : GameLoop.getCore().getPlayerManager().getPlayers())
+        {
+            if(!player.isPlayerLocal())
+            {
+                for(int i = 0; i < mPlane.getHitboxPoints().size(); i++)
+                {
+                        if(isIntersecting(mPlane.getHitboxPoints().get(i), mPlane.getHitboxPoints().get(i + 1 >= mPlane.getHitboxPoints().size() ? 0 : i + 1),
+                                player.getPlane().getHitboxPoints().get(i), player.getPlane().getHitboxPoints().get(i + 1 >= player.getPlane().getHitboxPoints().size() ? 0 : i + 1)))
+                    {
+                        mCollision.setCollision(CollisionType.PLANE);
+                    }
+                }
+            }
+        }
     }
 
     /**

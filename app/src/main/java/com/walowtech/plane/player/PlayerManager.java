@@ -49,7 +49,7 @@ public class PlayerManager implements GameComponent {
         // If this is multiplayer and a plane is not already added
         if(GameLoop.getCore().getMultiplayerAccess() != null && mPlayers.size() < 2){
             Player p = new Player(mContext, 1, false);
-            p.getPlane().getTail().setTailColor(Color.GREEN);
+            p.getPlane().getTail().setTailColor(Color.MAGENTA);
             addPlayer(p);
         }
 

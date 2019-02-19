@@ -23,6 +23,7 @@ import com.walowtech.plane.util.ConversionUtils;
 import com.walowtech.plane.util.GraphicUtils;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 
 /**
  * Class contains information about the plane object
@@ -41,8 +42,10 @@ public class Plane {
     private boolean mMovingX;
     private boolean mMovingY;
     private boolean mIsLocal;
+
     private double mDeltaX;
     private double mDeltaY;
+
     private float mXCoord;
     private float mYCoord;
     private float mRealX;
@@ -50,9 +53,11 @@ public class Plane {
     private float mWidth;
     private float mHeight;
     private float mHeading;
+
     private int relativeMargin;
     private RectF mRelativeBounds;
     private RectF mScreenBounds;
+    private ArrayList<Point> mHitboxPoints = new ArrayList<>();
     private Bitmap mPlaneSprite;
 
     private ConversionUtils convert;
@@ -308,6 +313,11 @@ public class Plane {
 
     public float getPlaneHeightDIP(){
         return mHeight;
+    }
+
+    public ArrayList<Point> getHitboxPoints()
+    {
+        return mHitboxPoints;
     }
 
     public Bitmap getPlaneSprite(){
