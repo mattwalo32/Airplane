@@ -2,9 +2,13 @@ package com.walowtech.plane.game;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
+import android.widget.Toast;
 
+import com.walowtech.plane.activity.GameActivity;
 import com.walowtech.plane.collision.CollisionDetector;
 import com.walowtech.plane.data.GameComponents;
+import com.walowtech.plane.multiplayer.Messages;
 import com.walowtech.plane.multiplayer.MultiplayerAccess;
 import com.walowtech.plane.player.PlayerManager;
 import com.walowtech.plane.util.CodeIntegrityUtils;
@@ -22,9 +26,11 @@ public class GameCore {
 
     private ArrayList<GameComponent> mGameComponents = new ArrayList<>();
     private MultiplayerAccess mMultiplayerAccess;
+    private Activity mCallingActivity;
 
     public GameCore(Context pContext, Activity pActivity){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
+        mCallingActivity = pActivity;
         addGameComponent(new PlayerManager(pContext));
         addGameComponent(new GameGraphics(pContext, pActivity));
     }
@@ -57,13 +63,40 @@ public class GameCore {
 
     /**
      * Stops all game components and game loop
+     * @param pResult Result of game (ie. won, lost, tied)
      */
-    public void stop(){
+    public void stop(final GameResult pResult){
+        String winner = "";
+
         for(GameComponent component : mGameComponents) {
             component.stop();
         }
 
         GameLoop.stopGame();
+
+        if(getMultiplayerAccess() != null){
+            if(pResult.getCode() == GameResult.TIE.getCode())
+            {
+                getMultiplayerAccess().sendToAllReliably(Messages.BOTH_COLLIDED.toString());
+                winner = "You both crashed!";
+            }
+            else
+            {
+                getMultiplayerAccess().sendToAllReliably(Messages.COLLIDED.toString());
+                winner = (GameResult.WON.getCode() == pResult.getCode() ? mMultiplayerAccess.getClientName() : mMultiplayerAccess.getOpponnetName()) + " won!";
+            }
+        }
+
+        final String winnerMessage = winner.toUpperCase();
+
+        mCallingActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(mCallingActivity instanceof GameActivity)
+                    ((GameActivity)mCallingActivity).showEndgameButtons(winnerMessage);
+            }
+        });
+        //Log.i("TEST", "Result: " + (pResult.getCode() == GameResult.WON.getCode() ? getMultiplayerAccess().getClientName() : getMultiplayerAccess().getOpponnetName()) + " won");
     }
 
     /**

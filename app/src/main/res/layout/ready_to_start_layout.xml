@@ -12,13 +12,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/ready"
-        android:visibility="gone"
         android:onClick="onReady"/>
 
     <ProgressBar
         android:id="@+id/loading_indicator"
         android:layout_width="@dimen/loading_indicator_size"
-        android:layout_height="@dimen/loading_indicator_size"
-        android:visibility="gone"/>
+        android:layout_height="@dimen/loading_indicator_size" />
 
 </LinearLayout>

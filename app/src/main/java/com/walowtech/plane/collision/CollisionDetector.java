@@ -8,6 +8,7 @@ import com.walowtech.plane.data.TailDataPoint;
 import com.walowtech.plane.game.GameComponent;
 import com.walowtech.plane.game.GameCore;
 import com.walowtech.plane.game.GameLoop;
+import com.walowtech.plane.game.GameResult;
 import com.walowtech.plane.player.Plane;
 import com.walowtech.plane.player.Player;
 import com.walowtech.plane.player.PlayerManager;
@@ -44,7 +45,10 @@ public class CollisionDetector implements GameComponent {
         checkForCollision();
 
         if(mCollision.isCollision()) {
-            GameLoop.getCore().stop();
+            if(mCollision.getCollisionType() == CollisionType.PLANE)
+                GameLoop.getCore().stop(GameResult.TIE);
+            else
+                GameLoop.getCore().stop(GameResult.LOST);
         }
     }
 
@@ -116,7 +120,6 @@ public class CollisionDetector implements GameComponent {
                                 player.getPlane().getHitboxPoints().get(i), player.getPlane().getHitboxPoints().get(i + 1 >= player.getPlane().getHitboxPoints().size() ? 0 : i + 1)))
                     {
                         mCollision.setCollision(CollisionType.PLANE);
-                        Log.i("TEST", "COLLIDED");
                     }
                 }
             }

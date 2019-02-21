@@ -92,7 +92,8 @@ public class GameLoop implements Runnable{
             mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    GameActivity.hideReadyLayout();
+                    if(mActivity instanceof GameActivity)
+                        ((GameActivity)mActivity).hideReadyLayout();
                 }
             });
         }
@@ -113,7 +114,8 @@ public class GameLoop implements Runnable{
                 cyclesUntilUpdate--;
                 if(cyclesUntilUpdate <= 0)
                 {
-                    getCore().getPlayerManager().getLocalPlayer().getPlane().notifyLocationToAll();
+                    if(getCore().getMultiplayerAccess() != null)
+                        getCore().getPlayerManager().getLocalPlayer().getPlane().notifyLocationToAll();
                 }
                 cyclesUntilUpdate = MAX_CYCLES_TO_SEND;
             } catch (InterruptedException e) {
@@ -123,13 +125,6 @@ public class GameLoop implements Runnable{
             sActualCycleTime = System.currentTimeMillis() - mCycleStartTime;
         }
         //CORE.stop();
-
-        mActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                GameActivity.showEndgameButtons();
-            }
-        });
 
         //restartGame();
     }
@@ -152,7 +147,8 @@ public class GameLoop implements Runnable{
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                GameActivity.hideEndgameButtons();
+                if(mActivity instanceof GameActivity)
+                    ((GameActivity)mActivity).hideEndgameButtons();
             }
         });
         startGame();
@@ -163,12 +159,8 @@ public class GameLoop implements Runnable{
      */
     public static void stopGame(){
         mRunning = false;
-
-        if(getCore().getMultiplayerAccess() != null){
-            getCore().getMultiplayerAccess().sendToAllReliably(Messages.COLLIDED.toString());
-
-        }
     }
+
 
     public static GameCore getCore(){
         return CORE;

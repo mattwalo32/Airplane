@@ -12,6 +12,7 @@ public enum Messages {
     READY_TO_START("READY_TO_START"),
     START_NOW("START_NOW"),
     COLLIDED("COLLIDED"),
+    BOTH_COLLIDED("BOTH_COLLIDED"),
     PLAY_AGAIN("PLAY_AGAIN");
 
     String name;

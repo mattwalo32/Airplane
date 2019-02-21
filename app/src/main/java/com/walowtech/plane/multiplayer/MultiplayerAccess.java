@@ -35,6 +35,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.common.base.Charsets;
 import com.walowtech.plane.activity.GameActivity;
 import com.walowtech.plane.game.GameLoop;
+import com.walowtech.plane.game.GameResult;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -194,7 +195,10 @@ public class MultiplayerAccess {
                     mOpponentPlayAgain = true;
                 }else if(message.equals(Messages.COLLIDED.toString())){
                     if(GameLoop.mRunning)
-                        GameLoop.getCore().stop();
+                        GameLoop.getCore().stop(GameResult.WON);
+                }else if(message.equals(Messages.BOTH_COLLIDED.toString())){
+                    if(GameLoop.mRunning)
+                        GameLoop.getCore().stop(GameResult.TIE);
                 }else if(message.matches("[[-]*[0-9]+,]*")){
                     MessageUtils.parseMessage(message, GameLoop.getCore().getPlayerManager().getPlayers().get(1).getPlane());
                 }
@@ -522,5 +526,29 @@ public class MultiplayerAccess {
         mWaitingRoomFinishedFromCode = false;
         mClientParticipantId = null;
         mActivity = null;
+    }
+
+    /**
+     * Grabs the opponent's display name
+     * @return Display name of opponent
+     */
+    public String getOpponnetName()
+    {
+        for(Participant participant : mRoom.getParticipants())
+        {
+            if(!participant.getParticipantId().equals(mClientParticipantId))
+                return participant.getDisplayName();
+        }
+
+        return null;
+    }
+
+    /**
+     * Grabs the client's display name
+     * @return Display name of client
+     */
+    public String getClientName()
+    {
+        return mRoom.getParticipant(mClientParticipantId).getDisplayName();
     }
 }

@@ -1,26 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/btns_root"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_gameover"
     android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    android:padding="@dimen/padding"
+    android:layout_width="@dimen/popup_width"
+    android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:gravity="center">
 
-    <Button
-        android:id="@+id/play_again"
+    <TextView
+        android:id="@+id/winner_msg"
+        android:padding="@dimen/padding"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/play_again"
-        android:visibility="gone"
-        android:onClick="playAgain"/>
+        android:layout_gravity="center_horizontal"
+        android:textAlignment="center"
+        android:textColor="#000"
+        android:textSize="@dimen/txt_large"
+        app:fontFamily="@font/airside_sans"/>
 
-    <Button
-        android:id="@+id/quit"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/quit"
-        android:visibility="gone"
-        android:onClick="quit"/>
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/play_again"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/play_again"
+            android:onClick="playAgain"/>
+
+        <Button
+            android:id="@+id/quit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/quit"
+            android:onClick="quit"/>
+
+    </LinearLayout>
 
 </LinearLayout>

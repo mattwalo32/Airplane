@@ -2,22 +2,22 @@ package com.walowtech.plane.activity;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.games.multiplayer.realtime.Room;
-import com.google.android.gms.games.multiplayer.realtime.RoomConfig;
 import com.walowtech.plane.Input.GameClickListener;
 import com.walowtech.plane.R;
 import com.walowtech.plane.game.GameLoop;
-import com.walowtech.plane.multiplayer.EventType;
-import com.walowtech.plane.multiplayer.MessageUtils;
 import com.walowtech.plane.multiplayer.Messages;
 import com.walowtech.plane.multiplayer.MultiplayerAccess;
 
@@ -37,7 +37,9 @@ public class GameActivity extends Activity {
     private Room mRoom;
     private MultiplayerAccess mMultiplayerAccess;
     private boolean mMuliplayer;
-    public static RelativeLayout mRoot;
+    private RelativeLayout mRoot;
+    private View mReplayLayout;
+    private View mReadyLayout;
 
 
     @Override
@@ -62,14 +64,13 @@ public class GameActivity extends Activity {
             gameLoop = new GameLoop(this, this);
         }
 
-        // Set up view so buttons can be added on top later
+        // Set up screen
         setContentView(R.layout.activity_game);
         mRoot = findViewById(R.id.root);
         mRoot.addView(GameLoop.getCore().getGraphics());
-        View btns = LayoutInflater.from(this).inflate(R.layout.endgame_buttons, mRoot, false);
-        View readyBtns = LayoutInflater.from(this).inflate(R.layout.ready_to_start_layout, mRoot, false);
-        mRoot.addView(btns);
-        mRoot.addView(readyBtns);
+
+        mReadyLayout = findViewById(R.id.ready_layout);
+        mReplayLayout = findViewById(R.id.gameover_layout);
 
         clickListener = new GameClickListener(this);
         GameLoop.getCore().getGraphics().setOnTouchListener(clickListener);
@@ -91,41 +92,39 @@ public class GameActivity extends Activity {
 
     /**
      * Shows buttons so that users can request to play again.
+     * @param pMessage The message to display
      */
-    public static void showEndgameButtons(){
-        Button btnPlayAgain = mRoot.findViewById(R.id.play_again);
-        btnPlayAgain.setVisibility(View.VISIBLE);
-        Button btnQuit = mRoot.findViewById(R.id.quit);
-        btnQuit.setVisibility(View.VISIBLE);
+    public void showEndgameButtons(String pMessage){
+        TextView txtWinner = mReplayLayout.findViewById(R.id.winner_msg);
+        txtWinner.setText(pMessage);
+        mReplayLayout.setVisibility(LinearLayout.VISIBLE);
+        mReplayLayout.bringToFront();
     }
 
     /**
      * Hides the "play again" and "quit" buttons from view
      */
-    public static void hideEndgameButtons(){
-        Button btnPlayAgain = mRoot.findViewById(R.id.play_again);
-        btnPlayAgain.setVisibility(View.GONE);
-        Button btnQuit = mRoot.findViewById(R.id.quit);
-        btnQuit.setVisibility(View.GONE);
+    public void hideEndgameButtons(){
+        mReplayLayout.setVisibility(View.GONE);
     }
 
     /**
      * Shows buttons so that users can ready up
      */
-    public static void showReadyLayout(){
-        Button btnPlayAgain = mRoot.findViewById(R.id.ready);
-        ProgressBar indicator = mRoot.findViewById(R.id.loading_indicator);
-        btnPlayAgain.setVisibility(View.VISIBLE);
+    public void showReadyLayout(){
+        ProgressBar indicator = mReadyLayout.findViewById(R.id.loading_indicator);
+        mReadyLayout.setVisibility(LinearLayout.VISIBLE);
         indicator.setVisibility(View.GONE);
+        mReadyLayout.bringToFront();
     }
 
     /**
      * Hides the ready button from the user
      */
-    public static void hideReadyLayout(){
-        Button btnPlayAgain = mRoot.findViewById(R.id.ready);
+    public void hideReadyLayout(){
+        View layout = mReadyLayout.findViewById(R.id.ready);
         ProgressBar indicator = mRoot.findViewById(R.id.loading_indicator);
-        btnPlayAgain.setVisibility(View.GONE);
+        layout.setVisibility(View.GONE);
 
         if(MultiplayerAccess.mOpponentReady)
             indicator.setVisibility(View.GONE);
@@ -140,7 +139,8 @@ public class GameActivity extends Activity {
     public void onReady(View v)
     {
         if(mMultiplayerAccess != null)
-        mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
+            mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
+
         MultiplayerAccess.mClientReady = true;
         hideReadyLayout();
     }
