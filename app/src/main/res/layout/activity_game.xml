@@ -13,8 +13,8 @@
 
     <include layout="@layout/ready_to_start_layout"
         android:id="@+id/ready_layout"
+        android:layout_marginTop="@dimen/message_vertical_offset"
         android:layout_width="@dimen/popup_width"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"/>
+        android:layout_height="wrap_content"/>
 
 </RelativeLayout>

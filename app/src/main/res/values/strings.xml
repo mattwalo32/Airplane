@@ -3,4 +3,6 @@
     <string name="play_again">Play Again</string>
     <string name="quit">Quit</string>
     <string name="ready">Ready</string>
+    <string name="start">TAP TO START</string>
+    <string name="waiting">WAITING</string>
 </resources>

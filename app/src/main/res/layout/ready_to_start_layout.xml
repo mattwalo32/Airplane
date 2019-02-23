@@ -5,18 +5,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
-    android:gravity="center">
+    android:layout_marginTop="@dimen/message_vertical_offset">
 
-    <Button
-        android:id="@+id/ready"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/ready"
-        android:onClick="onReady"/>
+    <TextView
+        android:id="@+id/txt_start"
+        android:layout_width="@dimen/message_width_small"
+        android:layout_height="@dimen/message_height"
+        android:layout_marginLeft="@dimen/message_small_x_start"
+        android:layout_gravity="start"
+        android:text="@string/start"
+        android:fontFamily="@font/airside_sans"
+        android:textSize="@dimen/txt_large"
+        android:padding="@dimen/padding"
+        android:background="@color/colorPrimary" />
 
-    <ProgressBar
-        android:id="@+id/loading_indicator"
-        android:layout_width="@dimen/loading_indicator_size"
-        android:layout_height="@dimen/loading_indicator_size" />
+    <TextView
+        android:id="@+id/txt_ready"
+        android:layout_width="@dimen/message_width_large"
+        android:layout_height="@dimen/message_height"
+        android:layout_marginLeft="@dimen/message_large_x_start"
+        android:layout_gravity="start"
+        android:fontFamily="@font/airside_sans"
+        android:textSize="@dimen/txt_large"
+        android:padding="@dimen/padding"
+        android:background="@color/colorPrimary" />
 
 </LinearLayout>

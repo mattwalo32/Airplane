@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.walowtech.plane.activity.GameActivity;
 import com.walowtech.plane.game.GameLoop;
 import com.walowtech.plane.multiplayer.EventType;
 import com.walowtech.plane.multiplayer.MessageUtils;
@@ -38,6 +39,7 @@ public class GameClickListener implements View.OnTouchListener {
         dp = conversion.dpToPx(1);
     }
 
+
     @Override
     public boolean onTouch(View view, MotionEvent event){
         int pointerCount = event.getPointerCount();
@@ -48,6 +50,14 @@ public class GameClickListener implements View.OnTouchListener {
         Plane plane = manager.getLocalPlayer().getPlane();
         MultiplayerAccess access = GameLoop.getCore().getMultiplayerAccess();
         String message = "";
+
+        // If the user is clicking to replay
+        if(!GameLoop.mRunning && event.getAction() == MotionEvent.ACTION_DOWN)
+        {
+            if (GameLoop.getCore().getCallingActivity() instanceof GameActivity)
+                ((GameActivity) GameLoop.getCore().getCallingActivity()).onReady(null);
+            return true;
+        }
 
         // If click is on right side
         if(x >= mScreenWidth / 2 && event.getActionMasked() == validEvent) {
@@ -67,6 +77,7 @@ public class GameClickListener implements View.OnTouchListener {
         if(!message.equals("") && access != null)
             access.sendToAll(message);
 
+        view.performClick();
         return true;
     }
 }

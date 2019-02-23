@@ -16,6 +16,7 @@ import android.util.Log;
 
 import com.google.android.gms.games.Game;
 import com.walowtech.plane.R;
+import com.walowtech.plane.data.TailDataPoint;
 import com.walowtech.plane.game.GameLoop;
 import com.walowtech.plane.multiplayer.EventType;
 import com.walowtech.plane.multiplayer.MessageUtils;
@@ -44,6 +45,7 @@ public class Plane {
     private boolean mMovingX;
     private boolean mMovingY;
     private boolean mIsLocal;
+    private boolean mDisplayMode;
 
     private double mDeltaX;
     private double mDeltaY;
@@ -55,6 +57,8 @@ public class Plane {
     private float mWidth;
     private float mHeight;
     private float mHeading;
+    private float mScreenWidth;
+    private float mScreenHeight;
 
     private int relativeMargin;
     private RectF mRelativeBounds;
@@ -71,15 +75,19 @@ public class Plane {
      * @param pContext Context from which plane was created
      * @param pLocal True if player is local, false if player is opponent
      * @param pId Number identifying player
+     * @param pDisplayMode True if Plane is in display mode
      */
-    public Plane(Context pContext, boolean pLocal, int pId){
+    public Plane(Context pContext, boolean pLocal, int pId, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context must not be null");
         displayMetrics = pContext.getResources().getDisplayMetrics();
         convert = new ConversionUtils(pContext);
         mIsLocal = pLocal;
         mPlayerId = pId;
+        mDisplayMode = pDisplayMode;
 
         dp = convert.dpToPx(1);
+        mScreenWidth = displayMetrics.widthPixels;
+        mScreenHeight = displayMetrics.heightPixels;
         mPlaneSprite = BitmapFactory.decodeResource(pContext.getResources(), R.drawable.icons8_fighter_jet_96);
         mPlaneSprite = Bitmap.createScaledBitmap(mPlaneSprite, (int)(120*dp), (int)(120*dp), true);
 
@@ -93,7 +101,7 @@ public class Plane {
         boolean startLeft = false;
 
         if(GameLoop.getCore().getMultiplayerAccess() != null)
-            startLeft =  mIsLocal == MultiplayerAccess.mStartingTopLeft;
+            startLeft =  mIsLocal == MultiplayerAccess.sStartingTopLeft;
 
         mWidth = mPlaneSprite.getWidth();
         mHeight = mPlaneSprite.getHeight();
@@ -147,13 +155,13 @@ public class Plane {
 
         // The relative coordinates should be moved if the plane is near the center of the screen or
         // if the plane is not near the center of the screen but the next movement will bring it closer in either dimension.
-        mMovingX = (mTurn || inRelativeBounds() || (
+        mMovingX = (mDisplayMode || mTurn || inRelativeBounds() || (
                 (getX() + mPlaneSprite.getWidth() <= mRelativeBounds.left && getX() - mDeltaX >= getX())
                         || (getX() >= mRelativeBounds.right && getX() - mDeltaX <= getX())
                         || (getX() + mPlaneSprite.getWidth() > mRelativeBounds.left && getX()< mRelativeBounds.right)
                         || (getX() - mDeltaX <= getX() && mScreenBounds.left <= PlayerManager.GAME_BOUNDS.left)
                         || (getX() - mDeltaX >= getX() && mScreenBounds.right >= PlayerManager.GAME_BOUNDS.right)));
-        mMovingY = (mTurn || inRelativeBounds() || (
+        mMovingY = (mDisplayMode || mTurn || inRelativeBounds() || (
                 (getY() + mPlaneSprite.getHeight() <= mRelativeBounds.top && getY() - mDeltaY > getY())
                         || (getY() >= mRelativeBounds.bottom && getY() - mDeltaY <= getY())
                         || (getY() + mPlaneSprite.getHeight() > mRelativeBounds.top && getY() < mRelativeBounds.bottom)
@@ -172,6 +180,40 @@ public class Plane {
         }else{
             mScreenBounds.top -= mDeltaY;
             mScreenBounds.bottom -= mDeltaY;
+        }
+
+        if(mDisplayMode)
+        {
+            if(getX() + mWidth + 1 < 0 || getX() + 1 > mScreenWidth || getY() + mHeight + 1 < 0 || getY() > mScreenHeight + 1)
+            {
+                mHeading = (int)(Math.random() * 360);
+                //Start Left Side
+                if(mHeading >= 315 || mHeading <= 45)
+                {
+                    mXCoord = mRealX = mScreenBounds.right;
+                    mYCoord = mRealY = (int)(Math.random() * mScreenBounds.bottom);
+                }
+                //Start bottom
+                else if(mHeading > 45 && mHeading < 135)
+                {
+                    mYCoord = mRealY = mScreenBounds.bottom;
+                    mXCoord = mRealX = (int)(Math.random() * mScreenBounds.right);
+                }
+                //Start right
+                else if(mHeading > 135 && mHeading < 225)
+                {
+                    mXCoord = mRealX = 0;
+                    mYCoord = (int)(Math.random() * mScreenBounds.bottom);
+                }
+                //Start top
+                else
+                {
+                    mYCoord = mRealY = 0;
+                    mXCoord = mRealX = (int)(Math.random() * mScreenBounds.right);
+                }
+
+                getTail().addDataPoint(new TailDataPoint(getTailX(0), getTailY(0), getTailX(0), getTailY(0)));
+            }
         }
     }
 

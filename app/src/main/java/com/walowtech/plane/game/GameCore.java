@@ -27,16 +27,18 @@ public class GameCore {
     private ArrayList<GameComponent> mGameComponents = new ArrayList<>();
     private MultiplayerAccess mMultiplayerAccess;
     private Activity mCallingActivity;
+    private boolean mDisplayMode;
 
-    public GameCore(Context pContext, Activity pActivity){
+    public GameCore(Context pContext, Activity pActivity, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
         mCallingActivity = pActivity;
-        addGameComponent(new PlayerManager(pContext));
+        mDisplayMode = pDisplayMode;
+        addGameComponent(new PlayerManager(pContext, pDisplayMode));
         addGameComponent(new GameGraphics(pContext, pActivity));
     }
 
     public GameCore(Context pContext, Activity pActivity, MultiplayerAccess pMultiplayerAccess){
-        this(pContext, pActivity);
+        this(pContext, pActivity, false);
         mMultiplayerAccess = pMultiplayerAccess;
     }
 
@@ -44,13 +46,16 @@ public class GameCore {
      * Initializes all game components
      */
     public void init(){
-        for(GameComponent component : mGameComponents)
+        for(GameComponent component : new ArrayList<>(mGameComponents))
             component.init();
 
-        addGameComponent(new CollisionDetector(getPlayerManager().getPlayers().get(0).getPlane()));
-        mGameComponents.get(mGameComponents.size() - 1).init();
-        MultiplayerAccess.mClientPlayAgain = false;
-        MultiplayerAccess.mOpponentPlayAgain = false;
+        if(!mDisplayMode)
+        {
+            addGameComponent(new CollisionDetector(getPlayerManager().getPlayers().get(0).getPlane()));
+            mGameComponents.get(mGameComponents.size() - 1).init();
+            MultiplayerAccess.sClientPlayAgain = false;
+            MultiplayerAccess.sOpponentPlayAgain = false;
+        }
     }
 
     /**
@@ -114,6 +119,10 @@ public class GameCore {
 
     public GameGraphics getGraphics(){
         return (GameGraphics) get(GameComponents.GRAPHICS);
+    }
+
+    public Activity getCallingActivity() {
+        return mCallingActivity;
     }
 
     /**

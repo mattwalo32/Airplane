@@ -34,6 +34,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.common.base.Charsets;
 import com.walowtech.plane.activity.GameActivity;
+import com.walowtech.plane.activity.MainActivity;
 import com.walowtech.plane.game.GameLoop;
 import com.walowtech.plane.game.GameResult;
 
@@ -58,6 +59,14 @@ public class MultiplayerAccess {
     private static final int RC_SELECT_PLAYERS = 9006;
     private static final int RC_WAITING_ROOM = 9007;
 
+    public static boolean sPlaying = false;
+    public static boolean sClientReady = false;
+    public static boolean sOpponentReady = false;
+    public static boolean sStartingTopLeft = false;
+    public static boolean sClientPlayAgain = false;
+    public static boolean sOpponentPlayAgain = false;
+    public static boolean sMustBeInitialized = false;
+
     private Context mContext;
     private static Activity mActivity;
 
@@ -69,16 +78,13 @@ public class MultiplayerAccess {
     private RoomStatusUpdateCallback mRoomStatusCallbackHandler;
     private OnRealTimeMessageReceivedListener mMessageReceivedHandler;
     private RealTimeMultiplayerClient.ReliableMessageSentCallback mHandleMessageSentCallback;
-
-    public static boolean mPlaying = false;
-    public static boolean mClientReady = false;
-    public static boolean mOpponentReady = false;
-    public static boolean mStartingTopLeft = false;
-    public static boolean mClientPlayAgain = false;
-    public static boolean mOpponentPlayAgain = false;
-    public static boolean sMustBeInitialized = false;
     private boolean mWaitingRoomFinishedFromCode = false;
 
+    /**
+     * Default constructor
+     * @param pContext Calling context
+     * @param pActivity Calling activity
+     */
     public MultiplayerAccess(Context pContext, Activity pActivity){
         mContext = pContext;
         mActivity = pActivity;
@@ -86,6 +92,13 @@ public class MultiplayerAccess {
         initHandlers();
     }
 
+    /**
+     * Constructor for a room that is already created
+     * @param pContext
+     * @param pActivity
+     * @param pRoom
+     * @param pClientParticipationId
+     */
     public MultiplayerAccess(Context pContext, Activity pActivity, Room pRoom, String pClientParticipationId){
         this(pContext, pActivity);
 
@@ -93,36 +106,43 @@ public class MultiplayerAccess {
         mClientParticipantId = pClientParticipationId;
     }
 
+    /**
+     * Signs in the user in the background without notifying them
+     */
     public void silentlySignIn(){
         GoogleSignInClient signInClient = GoogleSignIn.getClient(mContext,
                 GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN);
-        signInClient.silentSignIn().addOnCompleteListener(mActivity,
-                new OnCompleteListener<GoogleSignInAccount>() {
-                    @Override
-                    public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
-                        if(task.isSuccessful()){
-                            Toast.makeText(mContext, "Signed In", Toast.LENGTH_SHORT).show();
-                        }else{
-                            startSignInIntent();
-                        }
-                    }
-                });
+
+        signInClient.silentSignIn().addOnCompleteListener(mActivity, task -> {
+            if(task.isSuccessful()){
+                Toast.makeText(mContext, "Signed In", Toast.LENGTH_SHORT).show();
+            }else{
+                startSignInIntent();
+            }
+        });
     }
 
+    /**
+     * Signs in the user with a dialog
+     */
     public void startSignInIntent(){
         GoogleSignInClient signInClient = GoogleSignIn.getClient(mContext,
                 GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN);
+
         Intent intent = signInClient.getSignInIntent();
         mActivity.startActivityForResult(intent, RC_SIGN_IN);
     }
 
+    /**
+     * Creates the handlers and callbacks associated with multiplayer events.
+     */
     private void initHandlers(){
         mRoomUpdateCallback = new RoomUpdateCallback() {
             @Override
             public void onRoomCreated(int code, @Nullable Room room) {
                 if(code == GamesCallbackStatusCodes.OK && room != null){
-                    Toast.makeText(mContext, "Room Created", Toast.LENGTH_SHORT).show();
                     mRoom = room;
+                    Toast.makeText(mContext, "Room Created", Toast.LENGTH_SHORT).show();
                 }else{
                     Toast.makeText(mContext, "Error creating room, please try again.", Toast.LENGTH_SHORT).show();
                     mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -142,9 +162,7 @@ public class MultiplayerAccess {
 
             @Override
             public void onLeftRoom(int code, @NonNull String s) {
-                Toast.makeText(mContext, "Room has been left.", Toast.LENGTH_SHORT).show();
-
-                Log.i("TEST", "INSTANCE OF" + (mActivity instanceof GameActivity));
+                Toast.makeText(mContext, "Room has been left", Toast.LENGTH_SHORT).show();
 
                 if(mActivity instanceof GameActivity)
                 {
@@ -162,46 +180,42 @@ public class MultiplayerAccess {
                 } else {
                     Toast.makeText(mContext, "Error connecting to room: " + code, Toast.LENGTH_SHORT).show();
                     mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
                 }
             }
         };
 
-        mMessageReceivedHandler = new OnRealTimeMessageReceivedListener() {
-            @Override
-            public void onRealTimeMessageReceived(@NonNull RealTimeMessage realTimeMessage) {
-                byte[] bytes = realTimeMessage.getMessageData();
-                String message = new String(bytes, Charsets.UTF_8);
-                Log.i("MULTIPLAYER", "Message Recieved: " + message);
+        mMessageReceivedHandler = realTimeMessage -> {
+            byte[] bytes = realTimeMessage.getMessageData();
+            String message = new String(bytes, Charsets.UTF_8);
 
-                if(!mPlaying && message.equals(Messages.START_GAME.toString())){
-                    // Other device started the game
-                    onStartGameMessage();
-                }else if(message.equals(Messages.READY_TO_START.toString())){
-                    // Other device has loaded screen and is ready to start
-                    mOpponentReady = true;
-                    if(mClientReady){
-                        // This device has loaded screen and is ready to start
-                        Log.i("MULTIPLAYER", "Telling to start now");
-                        sendToAllReliably(Messages.START_NOW.toString());
-                    }else{
-                        Log.i("MULTIPLAYER", "Client is not ready");
-                    }
-                }else if(message.equals(Messages.START_NOW.toString())){
-                    // Both devices are ready, the other one is starting
-                    mOpponentReady = true;
-                    //mClientReady = true;
-                }else if(message.equals(Messages.PLAY_AGAIN.toString())) {
-                    mOpponentPlayAgain = true;
-                }else if(message.equals(Messages.COLLIDED.toString())){
-                    if(GameLoop.mRunning)
-                        GameLoop.getCore().stop(GameResult.WON);
-                }else if(message.equals(Messages.BOTH_COLLIDED.toString())){
-                    if(GameLoop.mRunning)
-                        GameLoop.getCore().stop(GameResult.TIE);
-                }else if(message.matches("[[-]*[0-9]+,]*")){
-                    MessageUtils.parseMessage(message, GameLoop.getCore().getPlayerManager().getPlayers().get(1).getPlane());
+            Log.i("MULTIPLAYER", "Message Recieved: " + message);
+
+            if(!sPlaying && message.equals(Messages.START_GAME.toString())){
+                // Other device started the game
+                onStartGameMessage();
+            }else if(message.equals(Messages.READY_TO_START.toString())){
+                // Other device has loaded screen and is ready to start
+                sOpponentReady = true;
+                if(sClientReady){
+                    // This device has loaded screen and is ready to start
+                    Log.i("MULTIPLAYER", "Telling to start now");
+                    sendToAllReliably(Messages.START_NOW.toString());
+                }else{
+                    Log.i("MULTIPLAYER", "Client is not ready");
                 }
+            }else if(message.equals(Messages.START_NOW.toString())){
+                // Both devices are ready, the other one is starting
+                sOpponentReady = true;
+            }else if(message.equals(Messages.PLAY_AGAIN.toString())) {
+                sOpponentPlayAgain = true;
+            }else if(message.equals(Messages.COLLIDED.toString())){
+                if(GameLoop.mRunning)
+                    GameLoop.getCore().stop(GameResult.WON);
+            }else if(message.equals(Messages.BOTH_COLLIDED.toString())){
+                if(GameLoop.mRunning)
+                    GameLoop.getCore().stop(GameResult.TIE);
+            }else if(message.matches("[[-]*[0-9]+,]*")){
+                MessageUtils.parseMessage(message, GameLoop.getCore().getPlayerManager().getPlayers().get(1).getPlane());
             }
         };
 
@@ -226,7 +240,7 @@ public class MultiplayerAccess {
             @Override
             public void onPeerDeclined(@Nullable Room room, @NonNull List<String> list) {
                 Toast.makeText(mContext, "Your invite was declined", Toast.LENGTH_LONG).show();
-                if(!mPlaying && shouldCancelGame(room)) {
+                if(!sPlaying && shouldCancelGame(room)) {
                     leaveRoom();
                 }
             }
@@ -239,7 +253,7 @@ public class MultiplayerAccess {
             @Override
             public void onPeerLeft(@Nullable Room room, @NonNull List<String> list) {
                 Toast.makeText(mContext, "Friend Left", Toast.LENGTH_SHORT).show();
-                if(!mPlaying && shouldCancelGame(room)) {
+                if(!sPlaying && shouldCancelGame(room)) {
                     leaveRoom();
                 }
             }
@@ -268,7 +282,7 @@ public class MultiplayerAccess {
 
             @Override
             public void onPeersConnected(@Nullable Room room, @NonNull List<String> list) {
-                if(mPlaying){
+                if(sPlaying){
                     //TODO: Handle if player joins ongoing game
                 }else if(shouldStartGame(room)){
                     startGame();
@@ -278,7 +292,7 @@ public class MultiplayerAccess {
 
             @Override
             public void onPeersDisconnected(@Nullable Room room, @NonNull List<String> list) {
-                if(mPlaying){
+                if(sPlaying){
                     //TODO: Handle player leaving mid-game
                     if(shouldCancelGame(room)){
                         leaveRoom();
@@ -432,14 +446,16 @@ public class MultiplayerAccess {
     }
 
     private void startGame(){
-        if(!mPlaying && mClientParticipantId != null) {
+        if(!sPlaying && mClientParticipantId != null) {
             Toast.makeText(mContext, "Starting Match", Toast.LENGTH_SHORT).show();
             determineStartinPosition();
+            if(mActivity instanceof MainActivity)
+                ((MainActivity) mActivity).getLoop().stopGame();
             Intent gameIntent = new Intent(mContext, GameActivity.class);
             gameIntent.putExtra("ROOM", mRoom);
             gameIntent.putExtra("USERID", mClientParticipantId);
             mActivity.startActivity(gameIntent);
-            mPlaying = true;
+            sPlaying = true;
         }
     }
 
@@ -460,7 +476,7 @@ public class MultiplayerAccess {
 
         if(opponentID == null)
         {
-            mStartingTopLeft = true;
+            sStartingTopLeft = true;
             return;
         }
 
@@ -469,13 +485,13 @@ public class MultiplayerAccess {
             for (int i = 0; i < clientID.length; i++) {
                 if (Character.getNumericValue(opponentID[i]) != Character.getNumericValue(clientID[i]))
                 {
-                    mStartingTopLeft = Character.getNumericValue(opponentID[i]) > Character.getNumericValue(clientID[i]);
+                    sStartingTopLeft = Character.getNumericValue(opponentID[i]) > Character.getNumericValue(clientID[i]);
                 }
             }
         }
         else
         {
-            mStartingTopLeft = clientID.length > opponentID.length;
+            sStartingTopLeft = clientID.length > opponentID.length;
         }
     }
 
@@ -495,7 +511,7 @@ public class MultiplayerAccess {
             }
         }
 
-        return connectedPlayers >= MIN_PLAYERS && !mPlaying;
+        return connectedPlayers >= MIN_PLAYERS && !sPlaying;
     }
 
     public boolean shouldCancelGame(Room room) {
@@ -516,13 +532,13 @@ public class MultiplayerAccess {
     {
         sMustBeInitialized = true;
         mRoom = null;
-        mPlaying = false;
+        sPlaying = false;
         mJoinedRoomConfig = null;
-        mClientPlayAgain = false;
-        mOpponentPlayAgain = false;
-        mClientReady = false;
-        mOpponentReady = false;
-        mStartingTopLeft = true;
+        sClientPlayAgain = false;
+        sOpponentPlayAgain = false;
+        sClientReady = false;
+        sOpponentReady = false;
+        sStartingTopLeft = true;
         mWaitingRoomFinishedFromCode = false;
         mClientParticipantId = null;
         mActivity = null;

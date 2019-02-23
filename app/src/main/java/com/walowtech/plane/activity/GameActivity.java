@@ -1,5 +1,7 @@
 package com.walowtech.plane.activity;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,6 +10,10 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -20,6 +26,8 @@ import com.walowtech.plane.R;
 import com.walowtech.plane.game.GameLoop;
 import com.walowtech.plane.multiplayer.Messages;
 import com.walowtech.plane.multiplayer.MultiplayerAccess;
+
+import java.util.Locale;
 
 /**
  * Activity that contains the game screen view.
@@ -56,12 +64,12 @@ public class GameActivity extends Activity {
             // Multi Player
             mMuliplayer = true;
             mMultiplayerAccess = new MultiplayerAccess(this, this, mRoom, mClientParticipationID);
-            MultiplayerAccess.mClientReady = false;
+            MultiplayerAccess.sClientReady = false;
             gameLoop = new GameLoop(this, this, mMultiplayerAccess);
         }else{
             Log.i("MULTIPLAYER", "In singleplayer mode");
             // Single Player
-            gameLoop = new GameLoop(this, this);
+            gameLoop = new GameLoop(this, this, false);
         }
 
         // Set up screen
@@ -76,9 +84,6 @@ public class GameActivity extends Activity {
         GameLoop.getCore().getGraphics().setOnTouchListener(clickListener);
 
         gameLoop.startGame();
-
-        if(mMuliplayer)
-            showReadyLayout();
     }
 
     /**
@@ -112,24 +117,20 @@ public class GameActivity extends Activity {
      * Shows buttons so that users can ready up
      */
     public void showReadyLayout(){
-        ProgressBar indicator = mReadyLayout.findViewById(R.id.loading_indicator);
         mReadyLayout.setVisibility(LinearLayout.VISIBLE);
-        indicator.setVisibility(View.GONE);
         mReadyLayout.bringToFront();
+        TextView startTxt = mReadyLayout.findViewById(R.id.txt_start);
+        animateView(startTxt, 0);
     }
 
     /**
      * Hides the ready button from the user
      */
     public void hideReadyLayout(){
-        View layout = mReadyLayout.findViewById(R.id.ready);
-        ProgressBar indicator = mRoot.findViewById(R.id.loading_indicator);
-        layout.setVisibility(View.GONE);
-
-        if(MultiplayerAccess.mOpponentReady)
-            indicator.setVisibility(View.GONE);
-        else
-            indicator.setVisibility(View.VISIBLE);
+        TextView startTxt = mReadyLayout.findViewById(R.id.txt_start);
+        TextView readyTxt = mReadyLayout.findViewById(R.id.txt_ready);
+        animateView(readyTxt, (int)(getResources().getDimension(R.dimen.message_large_x_start)));
+        animateView(startTxt, (int)(getResources().getDimension(R.dimen.message_small_x_start)));
     }
 
     /**
@@ -141,8 +142,56 @@ public class GameActivity extends Activity {
         if(mMultiplayerAccess != null)
             mMultiplayerAccess.sendToAllReliably(Messages.READY_TO_START.toString());
 
-        MultiplayerAccess.mClientReady = true;
-        hideReadyLayout();
+        MultiplayerAccess.sClientReady = true;
+
+        // If opponent ready start
+        if(MultiplayerAccess.sOpponentReady)
+        {
+            hideReadyLayout();
+        }
+        else
+        {
+            TextView readyTxt = mReadyLayout.findViewById(R.id.txt_ready);
+            String opponentName = mMultiplayerAccess.getOpponnetName().length() <= 15 ? mMultiplayerAccess.getOpponnetName() : "OPPONENT";
+            ((TextView) mReadyLayout.findViewById(R.id.txt_start)).setText(R.string.waiting);
+            animateView(readyTxt, 0);
+            readyTxt.setText(String.format(Locale.US, "%s IS NOT READY", opponentName.toUpperCase()));
+        }
+
+    }
+
+    /**
+     * Called when opponent is ready. Hides the ready layout if client is
+     * ready, else the client is notified that the opponent is ready.
+     */
+    public void onOpponentReady()
+    {
+        if(MultiplayerAccess.sClientReady)
+        {
+            hideReadyLayout();
+        }
+        else
+        {
+            TextView readyTxt = mReadyLayout.findViewById(R.id.txt_ready);
+            readyTxt.bringToFront();
+            String opponentName = mMultiplayerAccess.getOpponnetName().length() <= 15 ? mMultiplayerAccess.getOpponnetName() : "OPPONENT";
+            animateView(readyTxt, 0);
+            readyTxt.setText(String.format(Locale.US, "%s IS READY", opponentName.toUpperCase()));
+        }
+    }
+
+    /**
+     * Animates the given view to move to the specified position in
+     * AccelerateDecelerateInterpolator
+     * @param view The view to move
+     * @param finalPos The final absolute position to move to
+     */
+    private void animateView(View view, int finalPos)
+    {
+        ObjectAnimator anim = ObjectAnimator.ofFloat(view, "x", finalPos);
+        anim.setInterpolator(new AccelerateDecelerateInterpolator());
+        anim.setDuration(2000);
+        anim.start();
     }
 
     /**
@@ -154,10 +203,10 @@ public class GameActivity extends Activity {
     public void playAgain(View v){
         Log.i("TEST", "Play Again: " + v.getId());
         GameLoop.getCore().getMultiplayerAccess().sendToAllReliably(Messages.PLAY_AGAIN.toString());
-        MultiplayerAccess.mClientPlayAgain = true;
+        MultiplayerAccess.sClientPlayAgain = true;
         final Room room = mMultiplayerAccess.getRoom();
 
-        if(MultiplayerAccess.mOpponentPlayAgain){
+        if(MultiplayerAccess.sOpponentPlayAgain){
             gameLoop.restartGame();
         }else{
             // Thread checks if opponent wants to play again
@@ -166,7 +215,7 @@ public class GameActivity extends Activity {
                 public void run() {
                     boolean checking = true;
                     while(checking) {
-                        if (MultiplayerAccess.mOpponentPlayAgain)
+                        if (MultiplayerAccess.sOpponentPlayAgain)
                         {
                             gameLoop.restartGame();
                             checking = false;
@@ -190,7 +239,7 @@ public class GameActivity extends Activity {
      */
     public void quit(View v){
         Log.i("TEST", "Quit: " + v.getId());
-        MultiplayerAccess.mClientPlayAgain = false;
+        MultiplayerAccess.sClientPlayAgain = false;
         mMultiplayerAccess.leaveRoom();
     }
 
@@ -205,7 +254,7 @@ public class GameActivity extends Activity {
 
                 //Log.i("MULTIPLAYER", "WAITING TO START");
 
-                if(MultiplayerAccess.mOpponentReady){
+                if(MultiplayerAccess.sOpponentReady){
                     Log.i("MULTIPLAYER", "BOTH ARE READY");
                     mRunning = false;
                 }

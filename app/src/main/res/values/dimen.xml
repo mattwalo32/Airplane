@@ -4,4 +4,11 @@
     <dimen name="popup_width">300dp</dimen>
     <dimen name="padding">10dp</dimen>
     <dimen name="txt_large">30sp</dimen>
+
+    <dimen name="message_vertical_offset">150dp</dimen>
+    <dimen name="message_width_small">220dp</dimen>
+    <dimen name="message_width_large">300dp</dimen>
+    <dimen name="message_large_x_start">-300dp</dimen>
+    <dimen name="message_small_x_start">-220dp</dimen>
+    <dimen name="message_height">60dp</dimen>
 </resources>

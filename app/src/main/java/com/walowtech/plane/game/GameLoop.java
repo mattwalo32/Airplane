@@ -34,7 +34,10 @@ public class GameLoop implements Runnable{
     private long cycleTime;
     public static long sActualCycleTime = 0;
     public static boolean mRunning;
+    private volatile int cyclesUntilUpdate = 0;
+    private volatile boolean opponentShown = false;
     private boolean mMultiplayerMode;
+    private boolean mDisplayMode;
 
     private Thread gameThread;
     private Context mContext;
@@ -44,13 +47,15 @@ public class GameLoop implements Runnable{
      * Constructor for single player
      * @param pContext Context of calling activity
      * @param pActivity Calling activity
+     * @param pDisplayMode True if loop should be in display mode
      */
-    public GameLoop(Context pContext, Activity pActivity){
+    public GameLoop(Context pContext, Activity pActivity, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
         mContext = pContext;
         mActivity = pActivity;
-        CORE = new GameCore(pContext, pActivity);
+        CORE = new GameCore(pContext, pActivity, pDisplayMode);
         mMultiplayerMode = false;
+        mDisplayMode = pDisplayMode;
     }
 
     /**
@@ -74,30 +79,44 @@ public class GameLoop implements Runnable{
      */
     @Override
     public void run(){
-        int cyclesUntilUpdate = 0;
-
         CORE.init();
+        CORE.executeUpdate();
 
         // Wait for player to be ready
         if(mMultiplayerMode)
         {
-            while (!MultiplayerAccess.mOpponentReady || !MultiplayerAccess.mClientReady) {
+            // Show ready layout
+            mActivity.runOnUiThread(()->{
+                if(mActivity instanceof GameActivity) {
+                    ((GameActivity) mActivity).showReadyLayout();
+                }
+            });
+
+            while (!MultiplayerAccess.sOpponentReady || !MultiplayerAccess.sClientReady) {
                 try {
+                    if(MultiplayerAccess.sOpponentReady && !opponentShown)
+                    {
+                        if (mActivity instanceof GameActivity)
+                        {
+                            mActivity.runOnUiThread(()->((GameActivity) mActivity).onOpponentReady());
+                            opponentShown = true;
+                        }
+                    }
+
                     Thread.sleep(50);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
+
             // Remove indicator if it is up
-            mActivity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if(mActivity instanceof GameActivity)
+            mActivity.runOnUiThread(()->{
+                if(mActivity instanceof GameActivity)if(mActivity instanceof GameActivity)
                         ((GameActivity)mActivity).hideReadyLayout();
-                }
             });
         }
 
+        mRunning = true;
         while(mRunning){
             try {
                 mCycleStartTime = System.currentTimeMillis();
@@ -106,7 +125,7 @@ public class GameLoop implements Runnable{
 
                 //If there is still time left in the cycle, sleep for the remaining time
                 if(cycleTime < TARGET_CYCLE_TIME) {
-                    Log.v(TAG, "Sleep Time: " + (TARGET_CYCLE_TIME - cycleTime));
+                    Log.v(TAG, "Sleep Time: " + (cycleTime - TARGET_CYCLE_TIME));
                     Thread.sleep(TARGET_CYCLE_TIME - cycleTime);
                 }
 
@@ -133,7 +152,6 @@ public class GameLoop implements Runnable{
      * Starts the game thread
      */
     public void startGame(){
-        mRunning = true;
         gameThread = new Thread(this);
         gameThread.start();
     }
@@ -142,8 +160,8 @@ public class GameLoop implements Runnable{
      * Restarts the game by hiding buttons and creating new thread
      */
     public void restartGame(){
-        MultiplayerAccess.mClientPlayAgain = false;
-        MultiplayerAccess.mOpponentPlayAgain = false;
+        MultiplayerAccess.sClientPlayAgain = false;
+        MultiplayerAccess.sOpponentPlayAgain = false;
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {

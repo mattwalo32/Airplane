@@ -25,19 +25,22 @@ public class Player {
     private boolean mPlayerIsLocal;
     private boolean turnTailGenerated;
     private boolean straightTailGenerated;
+    private boolean mDisplayMode;
 
     /**
      * Player object constructor
      * @param pContext Calling context
      * @param pId Id of player
      * @param pPlayerIsLocal True if player is local, false if opponent
+     * @param pDisplayMode True if plane is in display mode
      */
-    public Player(Context pContext, int pId, boolean pPlayerIsLocal){
+    public Player(Context pContext, int pId, boolean pPlayerIsLocal, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
 
         mPlayerId = pId;
         mPlayerIsLocal = pPlayerIsLocal;
-        mPlane = new Plane(pContext, pPlayerIsLocal, mPlayerId);
+        mDisplayMode = pDisplayMode;
+        mPlane = new Plane(pContext, pPlayerIsLocal, mPlayerId, pDisplayMode);
     }
 
     /**

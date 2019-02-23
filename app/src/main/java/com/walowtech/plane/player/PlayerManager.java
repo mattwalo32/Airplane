@@ -27,19 +27,21 @@ public class PlayerManager implements GameComponent {
     public static final int RIGHT_GAME_BOUND = 2000;
     public static final int BOTTOM_GAME_BOUND = 3000;
     public static RectF GAME_BOUNDS;
+    private boolean mDisplayMode;
     private int dp;
     private Context mContext;
 
     private ArrayList<Player> mPlayers = new ArrayList<>();
     private ConversionUtils conversionUtils;
 
-    public PlayerManager(Context pContext){
+    public PlayerManager(Context pContext, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context must not be null");
         mContext = pContext;
+        mDisplayMode = pDisplayMode;
         conversionUtils = new ConversionUtils(mContext);
         dp = conversionUtils.dpToPx(1);
         GAME_BOUNDS = new RectF(0, 0, RIGHT_GAME_BOUND*dp, BOTTOM_GAME_BOUND*dp);
-        Player p = new Player(mContext,0, true);
+        Player p = new Player(mContext,0, true, pDisplayMode);
         p.getPlane().getTail().setTailColor(Color.RED);
         addPlayer(p);
     }
@@ -48,13 +50,26 @@ public class PlayerManager implements GameComponent {
     public void init() {
         // If this is multiplayer and a plane is not already added
         if(GameLoop.getCore().getMultiplayerAccess() != null && mPlayers.size() < 2){
-            Player p = new Player(mContext, 1, false);
+            Player p = new Player(mContext, 1, false, false);
             p.getPlane().getTail().setTailColor(Color.MAGENTA);
             addPlayer(p);
         }
 
-        for(Player player : mPlayers) {
-            player.setPlayerSpeed(BASE_PLAYER_SPEED*dp);
+        if(mDisplayMode)
+        {
+            for(int i = 0; i < 10; i++)
+            {
+                Player p = new Player(mContext, i + 1, true, true);
+                p.getPlane().getTail().setTailColor(Color.rgb((int)(Math.random() * 255), (int)(Math.random() * 255), (int)(Math.random() * 255)));
+                addPlayer(p);
+            }
+        }
+
+        for(Player player : new ArrayList<>(mPlayers)) {
+            if(mDisplayMode)
+                player.setPlayerSpeed(BASE_PLAYER_SPEED * 3);
+            else
+                player.setPlayerSpeed(BASE_PLAYER_SPEED*dp);
             player.setPlayerTurnSpeed(BASE_PLAYER_TURN_SPEED*dp);
             player.getPlane().getTail().setTailWidth(BASE_TAIL_WIDTH*dp);
             player.init();
@@ -84,7 +99,7 @@ public class PlayerManager implements GameComponent {
     }
 
     public ArrayList<Player> getPlayers() {
-        return mPlayers;
+        return new ArrayList<>(mPlayers);
     }
 
     public Player getLocalPlayer(){
