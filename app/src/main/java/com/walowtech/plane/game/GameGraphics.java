@@ -115,8 +115,9 @@ public class GameGraphics extends SurfaceView implements GameComponent{
 //            }
 
             // If the player is local, use relative coordinates. If not use real coordinates
-            float planeX = plane.isLocal() ? plane.getX() : plane.getRealX() - manager.getLocalPlayer().getPlane().getScreenX();
-            float planeY = plane.isLocal() ? plane.getY() : plane.getRealY() - manager.getLocalPlayer().getPlane().getScreenY();
+            float planeX = plane.isLocal() || plane.inDisplayMode() ? plane.getX() : plane.getRealX() - manager.getLocalPlayer().getPlane().getScreenX();
+            float planeY = plane.isLocal() || plane.inDisplayMode() ? plane.getY() : plane.getRealY() - manager.getLocalPlayer().getPlane().getScreenY();
+
 
             // Rotate plane
             Point centerOfRotation = new Point((int)(planeX + plane.getPlaneSprite().getWidth() / 2), (int)(planeY + plane.getPlaneSprite().getHeight() / 2));
@@ -132,10 +133,10 @@ public class GameGraphics extends SurfaceView implements GameComponent{
                 // Draw all tail data points
                 mPaint.setStrokeWidth(plane.getTail().getTailWidth());
                 if(data.getCurveType() == TailCurveType.STRAIGHT){
-                    float startX = plane.isLocal() ? data.getStartX() : data.getRealStartX() - manager.getLocalPlayer().getPlane().getScreenX();
-                    float startY = plane.isLocal() ? data.getStartY() : data.getRealStartY() - manager.getLocalPlayer().getPlane().getScreenY();
-                    float endX = plane.isLocal() ? data.getEndX() : data.getRealEndX() - manager.getLocalPlayer().getPlane().getScreenX();
-                    float endY = plane.isLocal() ? data.getEndY() : data.getRealEndY() - manager.getLocalPlayer().getPlane().getScreenY();
+                    float startX = plane.isLocal() || plane.inDisplayMode() ? data.getStartX() : data.getRealStartX() - manager.getLocalPlayer().getPlane().getScreenX();
+                    float startY = plane.isLocal() || plane.inDisplayMode() ? data.getStartY() : data.getRealStartY() - manager.getLocalPlayer().getPlane().getScreenY();
+                    float endX = plane.isLocal() || plane.inDisplayMode() ? data.getEndX() : data.getRealEndX() - manager.getLocalPlayer().getPlane().getScreenX();
+                    float endY = plane.isLocal() || plane.inDisplayMode() ? data.getEndY() : data.getRealEndY() - manager.getLocalPlayer().getPlane().getScreenY();
                     canvas.drawLine(startX, startY, endX, endY, mPaint);
                 }else if(data.getCurveType() == TailCurveType.CURVED){
                     //canvas.save();

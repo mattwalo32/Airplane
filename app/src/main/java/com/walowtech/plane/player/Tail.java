@@ -23,6 +23,7 @@ public class Tail {
     private float mTailWidth;
     private CopyOnWriteArrayList<TailDataPoint> mTailData = new CopyOnWriteArrayList<>();
     private boolean mIsLocal;
+    private boolean mInDisplayMode;
     private int mPlayerId;
     private GameLoop mGameLoop;
 
@@ -30,11 +31,13 @@ public class Tail {
      * Constructor for new tail objects
      * @param pGameLoop The GameLoop that owns the tail
      * @param pIsLocal True if player is local, false if opponent
+     * @param pInDisplayMode True if this plane is only in display mode
      * @param pId Unique ID of player
      */
-    public Tail(GameLoop pGameLoop, boolean pIsLocal, int pId){
+    public Tail(GameLoop pGameLoop, boolean pIsLocal, boolean pInDisplayMode, int pId){
         mGameLoop = pGameLoop;
         mIsLocal = pIsLocal;
+        mInDisplayMode = pInDisplayMode;
         mPlayerId = pId;
     }
 
@@ -58,6 +61,13 @@ public class Tail {
             // Update real coordinates
             currentPoint.setRealEndX((float) (currentPoint.getRealEndX() - plane.getDeltaX()));
             currentPoint.setRealEndY((float) (currentPoint.getRealEndY() - plane.getDeltaY()));
+
+            if(mInDisplayMode)
+            {
+                currentPoint.setEndX((float) (currentPoint.getEndX() - plane.getDeltaX()));
+                currentPoint.setEndY((float) (currentPoint.getEndY() - plane.getDeltaY()));
+                return;
+            }
 
             // Set relative screen coordinates of tail only if the tail belongs to local player
             if (!mIsLocal) return;

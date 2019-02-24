@@ -27,7 +27,7 @@ public class PlayerManager implements GameComponent {
     public static final int BASE_TAIL_WIDTH = 4;
     public static final int RIGHT_GAME_BOUND = 2000;
     public static final int BOTTOM_GAME_BOUND = 3000;
-    private static final int MAX_DISPLAY_PLANES = 10;
+    public static final int MAX_DISPLAY_PLANES = 5;
     public static RectF GAME_BOUNDS;
     private boolean mDisplayMode;
     private int dp;
@@ -67,7 +67,7 @@ public class PlayerManager implements GameComponent {
             {
                 if(getPlayers().size() < MAX_DISPLAY_PLANES)
                 {
-                    Player p = new Player(mContext, mGameLoop,i + 1, true, true);
+                    Player p = new Player(mContext, mGameLoop,i + 1,  false, true);
                     p.getPlane().getTail().setTailColor(Color.rgb((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255)));
                     addPlayer(p);
                 }

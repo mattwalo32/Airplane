@@ -72,8 +72,8 @@ public class Player {
             }
         }else{
             if(!straightTailGenerated){
-                float x = mPlane.isLocal() ? mPlane.getTailX(0) : mPlane.getRealTailX(0);
-                float y = mPlane.isLocal() ? mPlane.getTailY(0) : mPlane.getRealTailY(0);
+                float x = mPlane.isLocal() || mPlane.inDisplayMode() ? mPlane.getTailX(0) : mPlane.getRealTailX(0);
+                float y = mPlane.isLocal() || mPlane.inDisplayMode() ? mPlane.getTailY(0) : mPlane.getRealTailY(0);
 
                 mPlane.getTail().addDataPoint(new TailDataPoint(x, y, x, y));
                 straightTailGenerated = true;

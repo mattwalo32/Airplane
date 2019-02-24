@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Plane</string>
-    <string name="play_again">Play Again</string>
-    <string name="quit">Quit</string>
-    <string name="ready">Ready</string>
+    <string name="play_again">PLAY AGAIN</string>
+    <string name="quit">QUIT</string>
+    <string name="ready">READY</string>
     <string name="start">TAP TO START</string>
     <string name="waiting">WAITING</string>
     <string name="cancel">CANCEL SEARCH</string>

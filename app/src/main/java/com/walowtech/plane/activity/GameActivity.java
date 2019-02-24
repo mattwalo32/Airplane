@@ -126,15 +126,21 @@ public class GameActivity extends Activity {
     public void showEndgameButtons(String pMessage){
         TextView txtWinner = mReplayLayout.findViewById(R.id.winner_msg);
         txtWinner.setText(pMessage);
-        mReplayLayout.setVisibility(LinearLayout.VISIBLE);
+        animateView(mReplayLayout.findViewById(R.id.play_again), 0);
+        animateView(mReplayLayout.findViewById(R.id.winner_msg), 0);
+        animateView(mReplayLayout.findViewById(R.id.quit), 0);
         mReplayLayout.bringToFront();
+        ((TextView) mReplayLayout.findViewById(R.id.play_again)).setText(R.string.play_again);
     }
 
     /**
      * Hides the "play again" and "quit" buttons from view
      */
     public void hideEndgameButtons(){
-        mReplayLayout.setVisibility(View.GONE);
+        animateView(mReplayLayout.findViewById(R.id.play_again), (int)getResources().getDimension(R.dimen.message_small_x_start));
+        animateView(mReplayLayout.findViewById(R.id.winner_msg), (int)getResources().getDimension(R.dimen.message_large_x_start));
+        animateView(mReplayLayout.findViewById(R.id.quit), (int)getResources().getDimension(R.dimen.message_small_x_start));
+        animateView(mReplayLayout.findViewById(R.id.ready_msg), (int)getResources().getDimension(R.dimen.message_large_x_start));
     }
 
     /**
@@ -211,10 +217,11 @@ public class GameActivity extends Activity {
      * @param v View that invoked method
      */
     public void playAgain(View v){
-        Log.i("TEST", "Play Again: " + v.getId());
         gameLoop.getCore().getMultiplayerAccess().sendToAllReliably(Messages.PLAY_AGAIN.toString());
         MultiplayerAccess.sClientPlayAgain = true;
-        final Room room = mMultiplayerAccess.getRoom();
+
+        if (v instanceof TextView)
+            ((TextView) v).setText(R.string.waiting);
 
         if(MultiplayerAccess.sOpponentPlayAgain){
             gameLoop.restartGame();

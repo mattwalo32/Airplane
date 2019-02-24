@@ -6,7 +6,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.walowtech.plane"
-        minSdkVersion 16
+        minSdkVersion 17
         targetSdkVersion 28
         renderscriptTargetApi 18
         renderscriptSupportModeEnabled true

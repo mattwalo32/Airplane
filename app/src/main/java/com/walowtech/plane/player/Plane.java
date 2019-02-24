@@ -28,6 +28,8 @@ import com.walowtech.plane.util.GraphicUtils;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
+import static com.walowtech.plane.player.PlayerManager.MAX_DISPLAY_PLANES;
+
 /**
  * Class contains information about the plane object
  *
@@ -94,7 +96,7 @@ public class Plane {
         mPlaneSprite = BitmapFactory.decodeResource(pContext.getResources(), R.drawable.icons8_fighter_jet_96);
         mPlaneSprite = Bitmap.createScaledBitmap(mPlaneSprite, (int)(120*dp), (int)(120*dp), true);
 
-        mTail = new Tail(mGameLoop, pLocal, mPlayerId);
+        mTail = new Tail(mGameLoop, pLocal, mDisplayMode, mPlayerId);
     }
 
     public void init(){
@@ -115,7 +117,7 @@ public class Plane {
 
         if(mIsLocal)
         {
-            if(!startLeft)
+            if(!startLeft && !mDisplayMode)
             {
                 mScreenBounds.left = PlayerManager.GAME_BOUNDS.right - displayMetrics.widthPixels;
                 mScreenBounds.right = PlayerManager.GAME_BOUNDS.right;
@@ -154,7 +156,7 @@ public class Plane {
         mRealX -= mDeltaX;
         mRealY -= mDeltaY;
 
-        if(!mIsLocal) return;
+        if(!mIsLocal && !mDisplayMode) return;
 
         // The relative coordinates should be moved if the plane is near the center of the screen or
         // if the plane is not near the center of the screen but the next movement will bring it closer in either dimension.
@@ -187,35 +189,36 @@ public class Plane {
 
         if(mDisplayMode)
         {
-            if(getX() + mWidth + 1 < 0 || getX() + 1 > mScreenWidth || getY() + mHeight + 1 < 0 || getY() > mScreenHeight + 1)
+            if(getRealX() + mWidth + 1 < 0 || getRealX() > mScreenWidth + mWidth + 1 || getRealY() + mHeight + 1 < 0 || getRealY() > mScreenHeight + mHeight + 1)
             {
                 mHeading = (int)(Math.random() * 360);
-                //Start Left Side
-                if(mHeading >= 315 || mHeading <= 45)
+                //Start Left
+                if(mHeading > 135 && mHeading <= 225)
                 {
-                    mXCoord = mRealX = mScreenBounds.right;
-                    mYCoord = mRealY = (int)(Math.random() * mScreenBounds.bottom);
+                    mXCoord = mRealX = -mWidth;
+                    mYCoord = mRealY = (int)(Math.random() * mScreenHeight);
                 }
-                //Start bottom
-                else if(mHeading > 45 && mHeading < 135)
+                //Start Bottom
+                else if(mHeading > 45 && mHeading <= 135)
                 {
-                    mYCoord = mRealY = mScreenBounds.bottom;
-                    mXCoord = mRealX = (int)(Math.random() * mScreenBounds.right);
+                    mYCoord = mRealY = mScreenHeight + mHeight;
+                    mXCoord = mRealX = (int)(Math.random() * mScreenWidth);
                 }
-                //Start right
-                else if(mHeading > 135 && mHeading < 225)
+                //Start Right
+                else if(mHeading > 315 || mHeading <= 45)
                 {
-                    mXCoord = mRealX = 0;
-                    mYCoord = (int)(Math.random() * mScreenBounds.bottom);
+                    mXCoord = mRealX = mScreenWidth + mWidth;
+                    mYCoord = mRealY = (int)(Math.random() * mScreenHeight);
+
                 }
-                //Start top
+                //Start Top
                 else
                 {
-                    mYCoord = mRealY = 0;
-                    mXCoord = mRealX = (int)(Math.random() * mScreenBounds.right);
+                    mYCoord = mRealY = -mHeight;
+                    mXCoord = mRealX = (int)(Math.random() * mScreenWidth);
                 }
 
-                getTail().addDataPoint(new TailDataPoint(getTailX(0), getTailY(0), getTailX(0), getTailY(0)));
+                mGameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).setStraightTailGenerated(false);
             }
         }
     }
@@ -408,5 +411,10 @@ public class Plane {
 
     public boolean isLocal(){
         return mIsLocal;
+    }
+
+    public boolean inDisplayMode()
+    {
+        return mDisplayMode;
     }
 }
