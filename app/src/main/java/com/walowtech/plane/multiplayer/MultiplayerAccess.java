@@ -324,6 +324,7 @@ public class MultiplayerAccess {
             Games.getRealTimeMultiplayerClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
                     .leave(mJoinedRoomConfig, mRoom.getRoomId());
             mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            mRoom = null;
         }
         catch(NullPointerException e)
         {

@@ -1,17 +1,23 @@
 package com.walowtech.plane.activity;
 
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.games.Games;
 import com.walowtech.plane.R;
 import com.walowtech.plane.game.GameLoop;
 import com.walowtech.plane.multiplayer.MultiplayerAccess;
+
+import static com.walowtech.plane.util.GraphicUtils.animateBounce;
+import static com.walowtech.plane.util.GraphicUtils.animateView;
 
 /**
  * Activity that contains the main menu.
@@ -30,6 +36,8 @@ public class MainActivity extends Activity {
     private RelativeLayout mRoot;
     private GameLoop backgroundLoop;
 
+    private Thread mAnimationThread;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +54,26 @@ public class MainActivity extends Activity {
             mMultiplayer.startSignInIntent();
 
         backgroundLoop.startGame();
+
+        new Thread(() ->
+        {
+            while(!GameLoop.getCore().getGraphics().hasBeenDrawn())
+            {
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    animateView(mRoot.findViewById(R.id.homescreen_btns), 0);
+                }
+            });
+        }).start();
+
     }
 
     @Override
@@ -61,6 +89,7 @@ public class MainActivity extends Activity {
             mMultiplayer.silentlySignIn();
 
         backgroundLoop.restartGame();
+        ((TextView) mRoot.findViewById(R.id.btn_quickplay)).setText(mMultiplayer.getRoom() == null ? R.string.quick : R.string.cancel);
     }
 
     @Override
@@ -95,7 +124,26 @@ public class MainActivity extends Activity {
      * @param v VIew that invoked method
      */
     public void quickGame(View v){
-       mMultiplayer.createRoom(null, 1, 1);
+        if(mMultiplayer.getRoom() == null)
+        {
+            mMultiplayer.createRoom(null, 1, 1);
+
+            if(v instanceof TextView)
+            {
+                animateBounce(this, v, (int)getResources().getDimension(R.dimen.message_width_xsmall) * -1, R.string.cancel);
+            }
+
+
+        }
+        else
+        {
+            mMultiplayer.leaveRoom();
+
+            if(v instanceof TextView)
+            {
+                animateBounce(this, v, (int) getResources().getDimension(R.dimen.message_width_xsmall) * -1, R.string.quick);
+            }
+        }
     }
 
     /**

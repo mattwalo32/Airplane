@@ -6,9 +6,15 @@
     <dimen name="txt_large">30sp</dimen>
 
     <dimen name="message_vertical_offset">150dp</dimen>
+    <dimen name="message_vertical_offset_small">80dp</dimen>
+
+    <dimen name="message_width_xxsmall">120dp</dimen>
+    <dimen name="message_width_xsmall">160dp</dimen>
     <dimen name="message_width_small">220dp</dimen>
     <dimen name="message_width_large">300dp</dimen>
+
     <dimen name="message_large_x_start">-300dp</dimen>
     <dimen name="message_small_x_start">-220dp</dimen>
+
     <dimen name="message_height">60dp</dimen>
 </resources>

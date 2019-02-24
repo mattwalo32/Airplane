@@ -10,30 +10,49 @@
         android:id="@+id/homescreen_btns"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/message_large_x_start"
+        android:layout_marginTop="@dimen/message_vertical_offset_small"
         android:orientation="vertical"
         tools:context=".activity.MainActivity">
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/message_width_xxsmall"
+            android:layout_height="@dimen/message_height"
+            android:background="@color/colorPrimary"
+            android:fontFamily="@font/airside_sans"
+            android:textSize="@dimen/txt_large"
+            android:foreground="?attr/selectableItemBackground"
             android:text="Start"
             android:onClick="startGame"/>
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Quick Play"
+            android:id="@+id/btn_quickplay"
+            android:layout_width="@dimen/message_width_xsmall"
+            android:layout_height="@dimen/message_height"
+            android:background="@color/colorPrimary"
+            android:fontFamily="@font/airside_sans"
+            android:textSize="@dimen/txt_large"
+            android:foreground="?attr/selectableItemBackground"
+            android:text="@string/quick"
             android:onClick="quickGame"/>
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/message_width_small"
+            android:layout_height="@dimen/message_height"
+            android:background="@color/colorPrimary"
+            android:fontFamily="@font/airside_sans"
+            android:textSize="@dimen/txt_large"
+            android:foreground="?attr/selectableItemBackground"
             android:text="Invite Players"
             android:onClick="invitePlayers"/>
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/message_width_large"
+            android:layout_height="@dimen/message_height"
+            android:background="@color/colorPrimary"
+            android:fontFamily="@font/airside_sans"
+            android:textSize="@dimen/txt_large"
+            android:foreground="?attr/selectableItemBackground"
             android:text="Show Invitations"
             android:onClick="viewInvites"/>
 

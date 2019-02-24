@@ -85,13 +85,6 @@ public class GameLoop implements Runnable{
         // Wait for player to be ready
         if(mMultiplayerMode)
         {
-            // Show ready layout
-            mActivity.runOnUiThread(()->{
-                if(mActivity instanceof GameActivity) {
-                    ((GameActivity) mActivity).showReadyLayout();
-                }
-            });
-
             while (!MultiplayerAccess.sOpponentReady || !MultiplayerAccess.sClientReady) {
                 try {
                     if(MultiplayerAccess.sOpponentReady && !opponentShown)
@@ -152,6 +145,7 @@ public class GameLoop implements Runnable{
      * Starts the game thread
      */
     public void startGame(){
+        mRunning = false;
         gameThread = new Thread(this);
         gameThread.start();
     }

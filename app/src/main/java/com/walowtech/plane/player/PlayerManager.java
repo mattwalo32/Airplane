@@ -21,11 +21,12 @@ import java.util.ArrayList;
  */
 public class PlayerManager implements GameComponent {
 
-    public static final int BASE_PLAYER_SPEED = 250;
+    public static final int BASE_PLAYER_SPEED = 400;
     public static final int BASE_PLAYER_TURN_SPEED = 190;
     public static final int BASE_TAIL_WIDTH = 4;
     public static final int RIGHT_GAME_BOUND = 2000;
     public static final int BOTTOM_GAME_BOUND = 3000;
+    private static final int MAX_DISPLAY_PLANES = 10;
     public static RectF GAME_BOUNDS;
     private boolean mDisplayMode;
     private int dp;
@@ -55,13 +56,17 @@ public class PlayerManager implements GameComponent {
             addPlayer(p);
         }
 
+        // If in display mode, add a bunch of planes to screen
         if(mDisplayMode)
         {
-            for(int i = 0; i < 10; i++)
+            for(int i = 0; i < MAX_DISPLAY_PLANES; i++)
             {
-                Player p = new Player(mContext, i + 1, true, true);
-                p.getPlane().getTail().setTailColor(Color.rgb((int)(Math.random() * 255), (int)(Math.random() * 255), (int)(Math.random() * 255)));
-                addPlayer(p);
+                if(getPlayers().size() < MAX_DISPLAY_PLANES)
+                {
+                    Player p = new Player(mContext, i + 1, true, true);
+                    p.getPlane().getTail().setTailColor(Color.rgb((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255)));
+                    addPlayer(p);
+                }
             }
         }
 

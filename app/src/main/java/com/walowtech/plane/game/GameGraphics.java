@@ -42,6 +42,7 @@ public class GameGraphics extends SurfaceView implements GameComponent{
     Paint mPaint;
     ConversionUtils convert;
     float dp;
+    private boolean mHasBeenDrawn;
     private boolean mInitialized = false;
     private int mScreenWidth;
     private int mScreenHeight;
@@ -65,6 +66,7 @@ public class GameGraphics extends SurfaceView implements GameComponent{
         mScreenWidth = metrics.widthPixels;
         mScreenHeight = metrics.heightPixels;
         mBackground = BackgroundGenerator.GenerateBackground((int)PlayerManager.GAME_BOUNDS.right, (int)PlayerManager.GAME_BOUNDS.bottom);
+        mHasBeenDrawn = false;
     }
 
     @Override
@@ -74,6 +76,7 @@ public class GameGraphics extends SurfaceView implements GameComponent{
             Plane p = GameLoop.getCore().getPlayerManager().getPlayers().get(0).getPlane();
             canvas.drawBitmap(mBackground, -p.getScreenX(), -p.getScreenY(), mPaint);
             drawPlane(canvas);
+            mHasBeenDrawn = true;
         }
     }
 
@@ -165,5 +168,9 @@ public class GameGraphics extends SurfaceView implements GameComponent{
     @Override
     public String getName() {
         return GameComponents.GRAPHICS.getName();
+    }
+
+    public boolean hasBeenDrawn() {
+        return mHasBeenDrawn;
     }
 }

@@ -29,6 +29,8 @@ import com.walowtech.plane.multiplayer.MultiplayerAccess;
 
 import java.util.Locale;
 
+import static com.walowtech.plane.util.GraphicUtils.animateView;
+
 /**
  * Activity that contains the game screen view.
  * Everything game-related is painted onto the canvas on this page
@@ -84,6 +86,25 @@ public class GameActivity extends Activity {
         GameLoop.getCore().getGraphics().setOnTouchListener(clickListener);
 
         gameLoop.startGame();
+
+        new Thread(() ->
+        {
+            while(!GameLoop.getCore().getGraphics().hasBeenDrawn())
+            {
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    showReadyLayout();
+                }
+            });
+        }).start();
     }
 
     /**
@@ -181,20 +202,6 @@ public class GameActivity extends Activity {
     }
 
     /**
-     * Animates the given view to move to the specified position in
-     * AccelerateDecelerateInterpolator
-     * @param view The view to move
-     * @param finalPos The final absolute position to move to
-     */
-    private void animateView(View view, int finalPos)
-    {
-        ObjectAnimator anim = ObjectAnimator.ofFloat(view, "x", finalPos);
-        anim.setInterpolator(new AccelerateDecelerateInterpolator());
-        anim.setDuration(2000);
-        anim.start();
-    }
-
-    /**
      * Called when the user requests to play again.
      * Sends replay request and listens for response.
      *
@@ -240,6 +247,7 @@ public class GameActivity extends Activity {
     public void quit(View v){
         Log.i("TEST", "Quit: " + v.getId());
         MultiplayerAccess.sClientPlayAgain = false;
+        GameLoop.stopGame();
         mMultiplayerAccess.leaveRoom();
     }
 
