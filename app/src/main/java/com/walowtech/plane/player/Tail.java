@@ -24,13 +24,16 @@ public class Tail {
     private CopyOnWriteArrayList<TailDataPoint> mTailData = new CopyOnWriteArrayList<>();
     private boolean mIsLocal;
     private int mPlayerId;
+    private GameLoop mGameLoop;
 
     /**
      * Constructor for new tail objects
+     * @param pGameLoop The GameLoop that owns the tail
      * @param pIsLocal True if player is local, false if opponent
      * @param pId Unique ID of player
      */
-    public Tail(boolean pIsLocal, int pId){
+    public Tail(GameLoop pGameLoop, boolean pIsLocal, int pId){
+        mGameLoop = pGameLoop;
         mIsLocal = pIsLocal;
         mPlayerId = pId;
     }
@@ -43,7 +46,7 @@ public class Tail {
      * Updates the current line of the player
      */
     public void updateCurrentLine() {
-        Plane plane = GameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).getPlane();
+        Plane plane = mGameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).getPlane();
 
         // Quit if there is no current line
         if(mTailData.size() <= 0)
@@ -82,7 +85,7 @@ public class Tail {
         TailDataPoint data = getCurrentDataPoint();
         if(data.getCurveType() == TailCurveType.CURVED) {
             
-            Plane plane = GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane();
+            Plane plane = mGameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane();
             RectF bounds = data.getBounds();
 
             float initialHeading =  data.getStartHeading();

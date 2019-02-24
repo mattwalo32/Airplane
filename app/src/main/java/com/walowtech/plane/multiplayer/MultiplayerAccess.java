@@ -73,6 +73,7 @@ public class MultiplayerAccess {
     private String mClientParticipantId;
     private static RoomConfig mJoinedRoomConfig;
     private Room mRoom;
+    private static GameLoop mGameLoop;
 
     private RoomUpdateCallback mRoomUpdateCallback;
     private RoomStatusUpdateCallback mRoomStatusCallbackHandler;
@@ -84,23 +85,26 @@ public class MultiplayerAccess {
      * Default constructor
      * @param pContext Calling context
      * @param pActivity Calling activity
+     * @param pGameLoop GameLoop that owns this object
      */
-    public MultiplayerAccess(Context pContext, Activity pActivity){
+    public MultiplayerAccess(Context pContext, Activity pActivity, GameLoop pGameLoop){
         mContext = pContext;
         mActivity = pActivity;
+        mGameLoop = pGameLoop;
 
         initHandlers();
     }
 
     /**
      * Constructor for a room that is already created
-     * @param pContext
-     * @param pActivity
-     * @param pRoom
-     * @param pClientParticipationId
+     * @param pContext Calling context
+     * @param pActivity Calling activity
+     * @param pGameLoop GameLoop that owns this object
+     * @param pRoom The multiplayer room object that is currently in use
+     * @param pClientParticipationId The client participation DI for the match in progress
      */
-    public MultiplayerAccess(Context pContext, Activity pActivity, Room pRoom, String pClientParticipationId){
-        this(pContext, pActivity);
+    public MultiplayerAccess(Context pContext, Activity pActivity, GameLoop pGameLoop, Room pRoom, String pClientParticipationId){
+        this(pContext, pActivity, pGameLoop);
 
         mRoom = pRoom;
         mClientParticipantId = pClientParticipationId;
@@ -209,13 +213,14 @@ public class MultiplayerAccess {
             }else if(message.equals(Messages.PLAY_AGAIN.toString())) {
                 sOpponentPlayAgain = true;
             }else if(message.equals(Messages.COLLIDED.toString())){
-                if(GameLoop.mRunning)
-                    GameLoop.getCore().stop(GameResult.WON);
+                if(mGameLoop.mRunning)
+                    mGameLoop.getCore().stop(GameResult.WON);
             }else if(message.equals(Messages.BOTH_COLLIDED.toString())){
-                if(GameLoop.mRunning)
-                    GameLoop.getCore().stop(GameResult.TIE);
+                if(mGameLoop.mRunning)
+                    mGameLoop.getCore().stop(GameResult.TIE);
             }else if(message.matches("[[-]*[0-9]+,]*")){
-                MessageUtils.parseMessage(message, GameLoop.getCore().getPlayerManager().getPlayers().get(1).getPlane());
+                Log.i("MULTIPLAYER", "SIZE " + mGameLoop.getCore().getPlayerManager().getPlayers().size());
+                MessageUtils.parseMessage(message, mGameLoop.getCore().getPlayerManager().getPlayers().get(1).getPlane());
             }
         };
 
@@ -567,5 +572,9 @@ public class MultiplayerAccess {
     public String getClientName()
     {
         return mRoom.getParticipant(mClientParticipantId).getDisplayName();
+    }
+
+    public void setGameLoop(GameLoop mGameLoop) {
+        this.mGameLoop = mGameLoop;
     }
 }

@@ -62,11 +62,12 @@ public class GraphicUtils {
      * @param activity Calling activity to update UI on
      * @param view The view to move
      * @param bouncePos The position to bounce to and back
+     * @param finalPos The final position for the view to bounce to
      * @param resId The resource ID of the string to set to the view after bounce reaches peak. This is nullable, if left null, text is not changed.
      */
-    public static void animateBounce(Activity activity, View view, int bouncePos, @Nullable Integer resId)
+    public static void animateBounce(Activity activity, View view, int bouncePos, int finalPos, @Nullable Integer resId)
     {
-        final float originalPos = view.getX();
+        view.clearAnimation();
         animateView(view, bouncePos, 1000);
 
         new Thread(()->
@@ -82,7 +83,7 @@ public class GraphicUtils {
                 {
                     ((TextView) view).setText(resId);
                 }
-                animateView(view, (int)originalPos, 1200);
+                animateView(view, finalPos, 1200);
             });
         }).start();
     }

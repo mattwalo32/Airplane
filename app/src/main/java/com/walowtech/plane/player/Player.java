@@ -19,6 +19,7 @@ import com.walowtech.plane.util.ConversionUtils;
 public class Player {
 
     private Plane mPlane;
+
     private int mPlayerId;
     private float mPlayerSpeed;
     private float mPlayerTurnSpeed;
@@ -30,17 +31,18 @@ public class Player {
     /**
      * Player object constructor
      * @param pContext Calling context
+     * @param pGameLoop The GameLoop that owns this player
      * @param pId Id of player
      * @param pPlayerIsLocal True if player is local, false if opponent
      * @param pDisplayMode True if plane is in display mode
      */
-    public Player(Context pContext, int pId, boolean pPlayerIsLocal, boolean pDisplayMode){
+    public Player(Context pContext, GameLoop pGameLoop, int pId, boolean pPlayerIsLocal, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
 
         mPlayerId = pId;
         mPlayerIsLocal = pPlayerIsLocal;
         mDisplayMode = pDisplayMode;
-        mPlane = new Plane(pContext, pPlayerIsLocal, mPlayerId, pDisplayMode);
+        mPlane = new Plane(pContext, pGameLoop, pPlayerIsLocal, mPlayerId, pDisplayMode);
     }
 
     /**

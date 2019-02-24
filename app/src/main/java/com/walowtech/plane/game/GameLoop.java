@@ -28,12 +28,12 @@ public class GameLoop implements Runnable{
     private final String TAG = getClass().getName();
     private static final int TARGET_CYCLE_TIME = 1000 / 60;
     private static final int MAX_CYCLES_TO_SEND = 30;
-    private static GameCore CORE;
+    private GameCore CORE;
 
     private long mCycleStartTime;
     private long cycleTime;
     public static long sActualCycleTime = 0;
-    public static boolean mRunning;
+    public boolean mRunning;
     private volatile int cyclesUntilUpdate = 0;
     private volatile boolean opponentShown = false;
     private boolean mMultiplayerMode;
@@ -53,7 +53,7 @@ public class GameLoop implements Runnable{
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
         mContext = pContext;
         mActivity = pActivity;
-        CORE = new GameCore(pContext, pActivity, pDisplayMode);
+        CORE = new GameCore(pContext, pActivity, this, pDisplayMode);
         mMultiplayerMode = false;
         mDisplayMode = pDisplayMode;
     }
@@ -69,7 +69,7 @@ public class GameLoop implements Runnable{
         CodeIntegrityUtils.checkNotNull(pMultiplayerAccess, "Multiplayer Access cannot be null");
         mContext = pContext;
         mActivity = pActivity;
-        CORE = new GameCore(pContext, pActivity, pMultiplayerAccess);
+        CORE = new GameCore(pContext, pActivity, this, pMultiplayerAccess);
         mMultiplayerMode = true;
     }
 
@@ -169,12 +169,12 @@ public class GameLoop implements Runnable{
     /**
      * Stops game for all participants
      */
-    public static void stopGame(){
+    public void stopGame(){
         mRunning = false;
     }
 
 
-    public static GameCore getCore(){
+    public GameCore getCore(){
         return CORE;
     }
 }

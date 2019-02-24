@@ -26,15 +26,17 @@ import com.walowtech.plane.util.ConversionUtils;
  */
 public class GameClickListener implements View.OnTouchListener {
 
+    private GameLoop mGameLoop;
     private DisplayMetrics mDisplayMetrics;
     private ConversionUtils conversion;
     private int mScreenWidth;
     private int dp;
 
-    public GameClickListener(Context pContext){
+    public GameClickListener(Context pContext, GameLoop pGameLoop){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
         mDisplayMetrics = pContext.getResources().getDisplayMetrics();
         mScreenWidth = mDisplayMetrics.widthPixels;
+        mGameLoop = pGameLoop;
         conversion = new ConversionUtils(pContext);
         dp = conversion.dpToPx(1);
     }
@@ -46,16 +48,16 @@ public class GameClickListener implements View.OnTouchListener {
         float x = event.getX(pointerCount - 1);
         int validEvent = pointerCount > 1 ? MotionEvent.ACTION_POINTER_DOWN : MotionEvent.ACTION_DOWN;
 
-        PlayerManager manager =  GameLoop.getCore().getPlayerManager();
+        PlayerManager manager =  mGameLoop.getCore().getPlayerManager();
         Plane plane = manager.getLocalPlayer().getPlane();
-        MultiplayerAccess access = GameLoop.getCore().getMultiplayerAccess();
+        MultiplayerAccess access = mGameLoop.getCore().getMultiplayerAccess();
         String message = "";
 
         // If the user is clicking to replay
-        if(!GameLoop.mRunning && event.getAction() == MotionEvent.ACTION_DOWN)
+        if(!mGameLoop.mRunning && event.getAction() == MotionEvent.ACTION_DOWN)
         {
-            if (GameLoop.getCore().getCallingActivity() instanceof GameActivity)
-                ((GameActivity) GameLoop.getCore().getCallingActivity()).onReady(null);
+            if (mGameLoop.getCore().getCallingActivity() instanceof GameActivity)
+                ((GameActivity) mGameLoop.getCore().getCallingActivity()).onReady(null);
             return true;
         }
 

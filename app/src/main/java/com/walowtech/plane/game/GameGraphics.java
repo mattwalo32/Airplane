@@ -48,6 +48,7 @@ public class GameGraphics extends SurfaceView implements GameComponent{
     private int mScreenHeight;
     private Bitmap mBackground;
     private Activity mActivity;
+    private GameLoop mGameLoop;
     private Runnable mInvaidate = new Runnable() {
         @Override
         public void run() {
@@ -55,11 +56,12 @@ public class GameGraphics extends SurfaceView implements GameComponent{
         }
     };
 
-    public GameGraphics(Context context, Activity pActivity) {
+    public GameGraphics(Context context, GameLoop pGameLoop, Activity pActivity) {
         super(context);
         convert = new ConversionUtils(context);
         dp = convert.dpToPx(1);
         setWillNotDraw(false);
+        mGameLoop = pGameLoop;
         mActivity = pActivity;
 
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
@@ -73,7 +75,7 @@ public class GameGraphics extends SurfaceView implements GameComponent{
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if(mInitialized) {
-            Plane p = GameLoop.getCore().getPlayerManager().getPlayers().get(0).getPlane();
+            Plane p = mGameLoop.getCore().getPlayerManager().getPlayers().get(0).getPlane();
             canvas.drawBitmap(mBackground, -p.getScreenX(), -p.getScreenY(), mPaint);
             drawPlane(canvas);
             mHasBeenDrawn = true;
@@ -92,7 +94,7 @@ public class GameGraphics extends SurfaceView implements GameComponent{
 
 
         //Loop through all players to draw
-        PlayerManager manager = GameLoop.getCore().getPlayerManager();
+        PlayerManager manager = mGameLoop.getCore().getPlayerManager();
         for(Player player : manager.getPlayers()){
             Plane plane = player.getPlane();
 

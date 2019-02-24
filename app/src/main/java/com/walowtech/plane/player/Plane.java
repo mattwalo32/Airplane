@@ -69,20 +69,23 @@ public class Plane {
     private ConversionUtils convert;
     private DisplayMetrics displayMetrics;
     private Tail mTail;
+    private GameLoop mGameLoop;
 
     /**
      * Creates plane object
      * @param pContext Context from which plane was created
+     * @param pGameLoop The GameLoop to which this plane belongs to
      * @param pLocal True if player is local, false if player is opponent
      * @param pId Number identifying player
      * @param pDisplayMode True if Plane is in display mode
      */
-    public Plane(Context pContext, boolean pLocal, int pId, boolean pDisplayMode){
+    public Plane(Context pContext, GameLoop pGameLoop, boolean pLocal, int pId, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context must not be null");
         displayMetrics = pContext.getResources().getDisplayMetrics();
         convert = new ConversionUtils(pContext);
         mIsLocal = pLocal;
         mPlayerId = pId;
+        mGameLoop = pGameLoop;
         mDisplayMode = pDisplayMode;
 
         dp = convert.dpToPx(1);
@@ -91,7 +94,7 @@ public class Plane {
         mPlaneSprite = BitmapFactory.decodeResource(pContext.getResources(), R.drawable.icons8_fighter_jet_96);
         mPlaneSprite = Bitmap.createScaledBitmap(mPlaneSprite, (int)(120*dp), (int)(120*dp), true);
 
-        mTail = new Tail(pLocal, mPlayerId);
+        mTail = new Tail(mGameLoop, pLocal, mPlayerId);
     }
 
     public void init(){
@@ -100,7 +103,7 @@ public class Plane {
 
         boolean startLeft = false;
 
-        if(GameLoop.getCore().getMultiplayerAccess() != null)
+        if(mGameLoop.getCore().getMultiplayerAccess() != null)
             startLeft =  mIsLocal == MultiplayerAccess.sStartingTopLeft;
 
         mWidth = mPlaneSprite.getWidth();
@@ -245,9 +248,9 @@ public class Plane {
         mTurnRight = pDirection;
 
         if(!mTurn)
-            GameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).setStraightTailGenerated(mTurn);
+            mGameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).setStraightTailGenerated(mTurn);
         else
-            GameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).setTurnTailGenerated(!mTurn);
+            mGameLoop.getCore().getPlayerManager().getPlayers().get(mPlayerId).setTurnTailGenerated(!mTurn);
     }
 
     /**
@@ -255,7 +258,7 @@ public class Plane {
      */
     public void notifyLocationToAll()
     {
-        GameLoop.getCore().getMultiplayerAccess().sendToAll(MessageUtils.composeMessage(EventType.UPDATE_NOW, (int)mRealX, (int)mRealY, (int)mHeading));
+        mGameLoop.getCore().getMultiplayerAccess().sendToAll(MessageUtils.composeMessage(EventType.UPDATE_NOW, (int)mRealX, (int)mRealY, (int)mHeading));
     }
 
     private boolean inRelativeBounds(){

@@ -45,9 +45,9 @@ public class MainActivity extends Activity {
 
         backgroundLoop = new GameLoop(this, this, true);
 
-        mMultiplayer = new MultiplayerAccess(this, this);
+        mMultiplayer = new MultiplayerAccess(this, this, backgroundLoop);
         mRoot = findViewById(R.id.main_activity_root);
-        mRoot.addView(GameLoop.getCore().getGraphics());
+        mRoot.addView(backgroundLoop.getCore().getGraphics());
         mRoot.findViewById(R.id.homescreen_btns).bringToFront();
 
         if(!mMultiplayer.isSignedIn())
@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
 
         new Thread(() ->
         {
-            while(!GameLoop.getCore().getGraphics().hasBeenDrawn())
+            while(!backgroundLoop.getCore().getGraphics().hasBeenDrawn())
             {
                 try {
                     Thread.sleep(250);
@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
         super.onResume();
         if(MultiplayerAccess.sMustBeInitialized)
         {
-            mMultiplayer = new MultiplayerAccess(this, this);
+            mMultiplayer = new MultiplayerAccess(this, this, backgroundLoop);
             MultiplayerAccess.sMustBeInitialized = false;
         }
 
@@ -130,9 +130,8 @@ public class MainActivity extends Activity {
 
             if(v instanceof TextView)
             {
-                animateBounce(this, v, (int)getResources().getDimension(R.dimen.message_width_xsmall) * -1, R.string.cancel);
+                animateBounce(this, v, (int)getResources().getDimension(R.dimen.message_width_xsmall) * -1, 0, R.string.cancel);
             }
-
 
         }
         else
@@ -141,7 +140,7 @@ public class MainActivity extends Activity {
 
             if(v instanceof TextView)
             {
-                animateBounce(this, v, (int) getResources().getDimension(R.dimen.message_width_xsmall) * -1, R.string.quick);
+                animateBounce(this, v, (int) getResources().getDimension(R.dimen.message_width_xsmall) * -1, 0, R.string.quick);
             }
         }
     }

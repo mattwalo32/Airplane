@@ -65,9 +65,10 @@ public class GameActivity extends Activity {
             Log.i("MULTIPLAYER", "In multiplayer mode");
             // Multi Player
             mMuliplayer = true;
-            mMultiplayerAccess = new MultiplayerAccess(this, this, mRoom, mClientParticipationID);
-            MultiplayerAccess.sClientReady = false;
+            mMultiplayerAccess = new MultiplayerAccess(this, this, null, mRoom, mClientParticipationID);
             gameLoop = new GameLoop(this, this, mMultiplayerAccess);
+            mMultiplayerAccess.setGameLoop(gameLoop);
+            MultiplayerAccess.sClientReady = false;
         }else{
             Log.i("MULTIPLAYER", "In singleplayer mode");
             // Single Player
@@ -77,19 +78,21 @@ public class GameActivity extends Activity {
         // Set up screen
         setContentView(R.layout.activity_game);
         mRoot = findViewById(R.id.root);
-        mRoot.addView(GameLoop.getCore().getGraphics());
+        mRoot.addView(gameLoop.getCore().getGraphics());
 
         mReadyLayout = findViewById(R.id.ready_layout);
         mReplayLayout = findViewById(R.id.gameover_layout);
 
-        clickListener = new GameClickListener(this);
-        GameLoop.getCore().getGraphics().setOnTouchListener(clickListener);
+        clickListener = new GameClickListener(this, gameLoop);
+        gameLoop.getCore().getGraphics().setOnTouchListener(clickListener);
 
         gameLoop.startGame();
 
+        Log.i("TEST", "SIZE: " + gameLoop.getCore().getPlayerManager().getPlayers().size());
+
         new Thread(() ->
         {
-            while(!GameLoop.getCore().getGraphics().hasBeenDrawn())
+            while(!gameLoop.getCore().getGraphics().hasBeenDrawn())
             {
                 try {
                     Thread.sleep(250);
@@ -209,7 +212,7 @@ public class GameActivity extends Activity {
      */
     public void playAgain(View v){
         Log.i("TEST", "Play Again: " + v.getId());
-        GameLoop.getCore().getMultiplayerAccess().sendToAllReliably(Messages.PLAY_AGAIN.toString());
+        gameLoop.getCore().getMultiplayerAccess().sendToAllReliably(Messages.PLAY_AGAIN.toString());
         MultiplayerAccess.sClientPlayAgain = true;
         final Room room = mMultiplayerAccess.getRoom();
 
@@ -247,7 +250,7 @@ public class GameActivity extends Activity {
     public void quit(View v){
         Log.i("TEST", "Quit: " + v.getId());
         MultiplayerAccess.sClientPlayAgain = false;
-        GameLoop.stopGame();
+        gameLoop.stopGame();
         mMultiplayerAccess.leaveRoom();
     }
 

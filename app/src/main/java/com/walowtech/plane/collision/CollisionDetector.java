@@ -26,12 +26,14 @@ import java.util.ArrayList;
 public class CollisionDetector implements GameComponent {
 
     private Collision mCollision;
+    private GameLoop mGameLoop;
     private Plane mPlane;
     private RectF mPlaneHitbox;
     private int hitboxShrink = 15;
 
-    public CollisionDetector(Plane p){
+    public CollisionDetector(Plane p, GameLoop pGameLoop){
         mPlane = p;
+        mGameLoop = pGameLoop;
     }
 
     @Override
@@ -46,9 +48,9 @@ public class CollisionDetector implements GameComponent {
 
         if(mCollision.isCollision()) {
             if(mCollision.getCollisionType() == CollisionType.PLANE)
-                GameLoop.getCore().stop(GameResult.TIE);
+                mGameLoop.getCore().stop(GameResult.TIE);
             else
-                GameLoop.getCore().stop(GameResult.LOST);
+                mGameLoop.getCore().stop(GameResult.LOST);
         }
     }
 
@@ -58,7 +60,7 @@ public class CollisionDetector implements GameComponent {
      */
     public void checkForCollision(){
         mPlaneHitbox = new RectF(mPlane.getRealX(), mPlane.getRealY(), mPlane.getRealX() + mPlane.getPlaneSprite().getWidth(), mPlane.getRealY() + mPlane.getPlaneSprite().getHeight());
-        for(Player player : GameLoop.getCore().getPlayerManager().getPlayers())
+        for(Player player : mGameLoop.getCore().getPlayerManager().getPlayers())
         {
             initHitbox(player.getPlane(), player.isPlayerLocal());
         }
@@ -93,13 +95,13 @@ public class CollisionDetector implements GameComponent {
      * Checks if player has hit any lines
      */
     private void checkLines(){
-        for(Player p : GameLoop.getCore().getPlayerManager().getPlayers()) {
+        for(Player p : mGameLoop.getCore().getPlayerManager().getPlayers()) {
             for (TailDataPoint dataPoint : p.getPlane().getTail().getTailData()){
                 for(int i = 0; i < mPlane.getHitboxPoints().size(); i++){
-                    int sX = p.getPlane().isLocal() ? (int)dataPoint.getStartX() : (int)(dataPoint.getRealStartX() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenX());
-                    int sY = p.getPlane().isLocal() ? (int)dataPoint.getStartY() : (int)(dataPoint.getRealStartY() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenY());
-                    int eX = p.getPlane().isLocal() ? (int)dataPoint.getEndX() : (int)(dataPoint.getRealEndX() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenX());
-                    int eY = p.getPlane().isLocal() ? (int)dataPoint.getEndY() : (int)(dataPoint.getRealEndY() - GameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenY());
+                    int sX = p.getPlane().isLocal() ? (int)dataPoint.getStartX() : (int)(dataPoint.getRealStartX() - mGameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenX());
+                    int sY = p.getPlane().isLocal() ? (int)dataPoint.getStartY() : (int)(dataPoint.getRealStartY() - mGameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenY());
+                    int eX = p.getPlane().isLocal() ? (int)dataPoint.getEndX() : (int)(dataPoint.getRealEndX() - mGameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenX());
+                    int eY = p.getPlane().isLocal() ? (int)dataPoint.getEndY() : (int)(dataPoint.getRealEndY() - mGameLoop.getCore().getPlayerManager().getLocalPlayer().getPlane().getScreenY());
                     if(isIntersecting(mPlane.getHitboxPoints().get(i), mPlane.getHitboxPoints().get(i + 1 >= mPlane.getHitboxPoints().size() ? 0 : i + 1),
                             new Point(sX, sY), new Point(eX, eY))){
                         mCollision.setCollision(CollisionType.LINE);
@@ -110,7 +112,7 @@ public class CollisionDetector implements GameComponent {
     }
 
     private void checkPlanes(){
-        for(Player player : GameLoop.getCore().getPlayerManager().getPlayers())
+        for(Player player : mGameLoop.getCore().getPlayerManager().getPlayers())
         {
             if(!player.isPlayerLocal())
             {

@@ -3,6 +3,7 @@ package com.walowtech.plane.player;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.RectF;
+import android.util.Log;
 
 import com.walowtech.plane.game.GameComponent;
 import com.walowtech.plane.data.GameComponents;
@@ -31,18 +32,20 @@ public class PlayerManager implements GameComponent {
     private boolean mDisplayMode;
     private int dp;
     private Context mContext;
+    private GameLoop mGameLoop;
 
     private ArrayList<Player> mPlayers = new ArrayList<>();
     private ConversionUtils conversionUtils;
 
-    public PlayerManager(Context pContext, boolean pDisplayMode){
+    public PlayerManager(Context pContext, GameLoop pGameLoop, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context must not be null");
         mContext = pContext;
         mDisplayMode = pDisplayMode;
+        mGameLoop = pGameLoop;
         conversionUtils = new ConversionUtils(mContext);
         dp = conversionUtils.dpToPx(1);
         GAME_BOUNDS = new RectF(0, 0, RIGHT_GAME_BOUND*dp, BOTTOM_GAME_BOUND*dp);
-        Player p = new Player(mContext,0, true, pDisplayMode);
+        Player p = new Player(mContext, mGameLoop,0, true, pDisplayMode);
         p.getPlane().getTail().setTailColor(Color.RED);
         addPlayer(p);
     }
@@ -50,12 +53,13 @@ public class PlayerManager implements GameComponent {
     @Override
     public void init() {
         // If this is multiplayer and a plane is not already added
-        if(GameLoop.getCore().getMultiplayerAccess() != null && mPlayers.size() < 2){
-            Player p = new Player(mContext, 1, false, false);
+        if(mGameLoop.getCore().getMultiplayerAccess() != null && mPlayers.size() < 2){
+            Player p = new Player(mContext, mGameLoop, 1, false, false);
             p.getPlane().getTail().setTailColor(Color.MAGENTA);
             addPlayer(p);
         }
 
+        Log.i("TEST", "IN MODE " + mDisplayMode);
         // If in display mode, add a bunch of planes to screen
         if(mDisplayMode)
         {
@@ -63,7 +67,7 @@ public class PlayerManager implements GameComponent {
             {
                 if(getPlayers().size() < MAX_DISPLAY_PLANES)
                 {
-                    Player p = new Player(mContext, i + 1, true, true);
+                    Player p = new Player(mContext, mGameLoop,i + 1, true, true);
                     p.getPlane().getTail().setTailColor(Color.rgb((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255)));
                     addPlayer(p);
                 }

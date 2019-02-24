@@ -27,18 +27,20 @@ public class GameCore {
     private ArrayList<GameComponent> mGameComponents = new ArrayList<>();
     private MultiplayerAccess mMultiplayerAccess;
     private Activity mCallingActivity;
+    private GameLoop mGameLoop;
     private boolean mDisplayMode;
 
-    public GameCore(Context pContext, Activity pActivity, boolean pDisplayMode){
+    public GameCore(Context pContext, Activity pActivity, GameLoop pGameLoop, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
         mCallingActivity = pActivity;
         mDisplayMode = pDisplayMode;
-        addGameComponent(new PlayerManager(pContext, pDisplayMode));
-        addGameComponent(new GameGraphics(pContext, pActivity));
+        mGameLoop = pGameLoop;
+        addGameComponent(new PlayerManager(pContext, mGameLoop, pDisplayMode));
+        addGameComponent(new GameGraphics(pContext, mGameLoop, pActivity));
     }
 
-    public GameCore(Context pContext, Activity pActivity, MultiplayerAccess pMultiplayerAccess){
-        this(pContext, pActivity, false);
+    public GameCore(Context pContext, Activity pActivity, GameLoop pGameLoop, MultiplayerAccess pMultiplayerAccess){
+        this(pContext, pActivity, pGameLoop, false);
         mMultiplayerAccess = pMultiplayerAccess;
     }
 
@@ -51,7 +53,7 @@ public class GameCore {
 
         if(!mDisplayMode)
         {
-            addGameComponent(new CollisionDetector(getPlayerManager().getPlayers().get(0).getPlane()));
+            addGameComponent(new CollisionDetector(getPlayerManager().getPlayers().get(0).getPlane(), mGameLoop));
             mGameComponents.get(mGameComponents.size() - 1).init();
             MultiplayerAccess.sClientPlayAgain = false;
             MultiplayerAccess.sOpponentPlayAgain = false;
@@ -77,7 +79,7 @@ public class GameCore {
             component.stop();
         }
 
-        GameLoop.stopGame();
+        mGameLoop.stopGame();
 
         if(getMultiplayerAccess() != null){
             if(pResult.getCode() == GameResult.TIE.getCode())
