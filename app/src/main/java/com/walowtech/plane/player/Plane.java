@@ -111,7 +111,7 @@ public class Plane {
         mWidth = mPlaneSprite.getWidth();
         mHeight = mPlaneSprite.getHeight();
 
-        relativeMargin = 2 * displayMetrics.widthPixels / 5;
+        relativeMargin = 3 * displayMetrics.widthPixels / 7;
 
         mScreenBounds = new RectF(0, (PlayerManager.GAME_BOUNDS.bottom - displayMetrics.heightPixels) / 2, displayMetrics.widthPixels, (PlayerManager.GAME_BOUNDS.bottom + displayMetrics.heightPixels) / 2);
 

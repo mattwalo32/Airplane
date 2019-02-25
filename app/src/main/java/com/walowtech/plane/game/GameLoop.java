@@ -27,15 +27,13 @@ public class GameLoop implements Runnable{
 
     private final String TAG = getClass().getName();
     private static final int TARGET_CYCLE_TIME = 1000 / 60;
-    private static final int MAX_CYCLES_TO_SEND = 30;
     private GameCore CORE;
 
     private long mCycleStartTime;
     private long cycleTime;
     public static long sActualCycleTime = 0;
     public boolean mRunning;
-    private volatile int cyclesUntilUpdate = 0;
-    private volatile boolean opponentShown = false;
+    private boolean opponentShown = false;
     private boolean mMultiplayerMode;
     private boolean mDisplayMode;
 
@@ -121,15 +119,6 @@ public class GameLoop implements Runnable{
                     Log.v(TAG, "Sleep Time: " + (cycleTime - TARGET_CYCLE_TIME));
                     Thread.sleep(TARGET_CYCLE_TIME - cycleTime);
                 }
-
-                //TODO: Clean this up, take out of loop
-                cyclesUntilUpdate--;
-                if(cyclesUntilUpdate <= 0)
-                {
-                    if(getCore().getMultiplayerAccess() != null)
-                        getCore().getPlayerManager().getLocalPlayer().getPlane().notifyLocationToAll();
-                }
-                cyclesUntilUpdate = MAX_CYCLES_TO_SEND;
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

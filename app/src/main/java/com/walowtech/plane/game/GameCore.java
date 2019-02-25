@@ -32,9 +32,11 @@ public class GameCore {
 
     public GameCore(Context pContext, Activity pActivity, GameLoop pGameLoop, boolean pDisplayMode){
         CodeIntegrityUtils.checkNotNull(pContext, "Context cannot be null");
+
         mCallingActivity = pActivity;
         mDisplayMode = pDisplayMode;
         mGameLoop = pGameLoop;
+
         addGameComponent(new PlayerManager(pContext, mGameLoop, pDisplayMode));
         addGameComponent(new GameGraphics(pContext, mGameLoop, pActivity));
     }
@@ -42,6 +44,7 @@ public class GameCore {
     public GameCore(Context pContext, Activity pActivity, GameLoop pGameLoop, MultiplayerAccess pMultiplayerAccess){
         this(pContext, pActivity, pGameLoop, false);
         mMultiplayerAccess = pMultiplayerAccess;
+        addGameComponent(new LocationNotifier(mGameLoop));
     }
 
     /**

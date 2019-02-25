@@ -15,7 +15,7 @@
         android:layout_height="@dimen/message_height"
         android:layout_marginLeft="@dimen/message_large_x_start"
         android:gravity="start"
-        android:background="@color/colorPrimary"
+        android:background="@color/glass"
         android:textSize="@dimen/txt_large" />
 
     <TextView
@@ -27,7 +27,7 @@
         android:layout_height="0dp"
         android:layout_marginLeft="@dimen/message_small_x_start"
         android:gravity="start"
-        android:background="@color/colorPrimary"
+        android:background="@color/glass"
         android:textSize="@dimen/txt_large" />
 
     <TextView
@@ -40,7 +40,7 @@
         android:layout_marginLeft="@dimen/message_small_x_start"
         android:foreground="?attr/selectableItemBackground"
         android:gravity="start"
-        android:background="@color/colorPrimary"
+        android:background="@color/glass"
         android:text="@string/play_again"
         android:textSize="@dimen/txt_large"
         android:onClick="playAgain" />
@@ -56,7 +56,7 @@
         android:foreground="?attr/selectableItemBackground"
         android:textSize="@dimen/txt_large"
         android:gravity="start"
-        android:background="@color/colorPrimary"
+        android:background="@color/glass"
         android:text="@string/quit"
         android:onClick="quit"/>
 

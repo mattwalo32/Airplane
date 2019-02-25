@@ -17,7 +17,7 @@
         android:fontFamily="@font/airside_sans"
         android:textSize="@dimen/txt_large"
         android:padding="@dimen/padding"
-        android:background="@color/colorPrimary" />
+        android:background="@color/glass" />
 
     <TextView
         android:id="@+id/txt_ready"
@@ -28,6 +28,6 @@
         android:fontFamily="@font/airside_sans"
         android:textSize="@dimen/txt_large"
         android:padding="@dimen/padding"
-        android:background="@color/colorPrimary" />
+        android:background="@color/glass" />
 
 </LinearLayout>
