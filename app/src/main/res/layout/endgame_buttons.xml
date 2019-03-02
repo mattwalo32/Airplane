@@ -33,7 +33,8 @@
     <TextView
         android:id="@+id/play_again"
         android:fontFamily="@font/airside_sans"
-        android:layout_width="@dimen/message_width_xsmall"
+        android:layout_width="wrap_content"
+        android:minWidth="@dimen/message_width_xsmall"
         android:layout_height="@dimen/message_height"
         android:padding="@dimen/padding"
         android:paddingStart="@dimen/padding_large"
@@ -48,7 +49,8 @@
     <TextView
         android:id="@+id/quit"
         android:fontFamily="@font/airside_sans"
-        android:layout_width="@dimen/message_width_xxsmall"
+        android:layout_width="wrap_content"
+        android:minWidth="@dimen/message_width_xxsmall"
         android:layout_height="@dimen/message_height"
         android:padding="@dimen/padding"
         android:paddingStart="@dimen/padding_large"

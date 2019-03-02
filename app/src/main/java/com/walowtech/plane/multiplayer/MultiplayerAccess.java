@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -21,6 +22,7 @@ import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesActivityResultCodes;
 import com.google.android.gms.games.GamesCallbackStatusCodes;
 import com.google.android.gms.games.RealTimeMultiplayerClient;
+import com.google.android.gms.games.multiplayer.Invitation;
 import com.google.android.gms.games.multiplayer.Multiplayer;
 import com.google.android.gms.games.multiplayer.Participant;
 import com.google.android.gms.games.multiplayer.realtime.OnRealTimeMessageReceivedListener;
@@ -33,6 +35,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.common.base.Charsets;
+import com.walowtech.plane.App;
 import com.walowtech.plane.activity.GameActivity;
 import com.walowtech.plane.activity.MainActivity;
 import com.walowtech.plane.game.GameLoop;
@@ -120,6 +123,8 @@ public class MultiplayerAccess {
         signInClient.silentSignIn().addOnCompleteListener(mActivity, task -> {
             if(task.isSuccessful()){
                 Toast.makeText(mContext, "Signed In", Toast.LENGTH_SHORT).show();
+                App.setSignedIn(true);
+                checkForInvitation();
             }else{
                 startSignInIntent();
             }
@@ -138,6 +143,36 @@ public class MultiplayerAccess {
     }
 
     /**
+     * Checks if the user was invited to a room and prompts user to accept
+     */
+    public void checkForInvitation()
+    {
+        Games.getGamesClient(mContext, GoogleSignIn.getLastSignedInAccount(mContext))
+                .getActivationHint()
+                .addOnSuccessListener(
+                        new OnSuccessListener<Bundle>() {
+                            @Override
+                            public void onSuccess(Bundle bundle) {
+                                if(bundle != null)
+                                {
+                                    Invitation invitation = bundle.getParcelable(Multiplayer.EXTRA_INVITATION);
+                                    if (invitation != null) {
+                                        RoomConfig.Builder builder = RoomConfig.builder(mRoomUpdateCallback)
+                                                .setInvitationIdToAccept(invitation.getInvitationId());
+                                        mJoinedRoomConfig = builder.build();
+                                        Games.getRealTimeMultiplayerClient(mActivity,
+                                                GoogleSignIn.getLastSignedInAccount(mActivity))
+                                                .join(mJoinedRoomConfig);
+                                        // prevent screen from sleeping during handshake
+                                        mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                    }
+                                }
+                            }
+                        }
+                );
+    }
+
+    /**
      * Creates the handlers and callbacks associated with multiplayer events.
      */
     private void initHandlers(){
@@ -147,6 +182,7 @@ public class MultiplayerAccess {
                 if(code == GamesCallbackStatusCodes.OK && room != null){
                     mRoom = room;
                     Toast.makeText(mContext, "Room Created", Toast.LENGTH_SHORT).show();
+                    showWaitingRoom(room, MAX_PLAYERS);
                 }else{
                     Toast.makeText(mContext, "Error creating room, please try again.", Toast.LENGTH_SHORT).show();
                     mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -157,7 +193,7 @@ public class MultiplayerAccess {
             public void onJoinedRoom(int code, @Nullable Room room) {
                 if (code == GamesCallbackStatusCodes.OK && room != null) {
                     Toast.makeText(mContext, "Joined Room " + room.getRoomId(), Toast.LENGTH_SHORT).show();
-                    showWaitingRoom(room, 2);
+                    showWaitingRoom(room, MAX_PLAYERS);
                 } else {
                     Toast.makeText(mContext, "Error joining room " + room.getRoomId() + ", please try again.", Toast.LENGTH_SHORT).show();
                     mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -180,7 +216,7 @@ public class MultiplayerAccess {
             public void onRoomConnected(int code, @Nullable Room room) {
                 if (code == GamesCallbackStatusCodes.OK && room != null) {
                     Toast.makeText(mContext, "Connected to room", Toast.LENGTH_SHORT).show();
-                    showWaitingRoom(mRoom, 2);
+                    showWaitingRoom(mRoom, MAX_PLAYERS);
                 } else {
                     Toast.makeText(mContext, "Error connecting to room: " + code, Toast.LENGTH_SHORT).show();
                     mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -229,22 +265,26 @@ public class MultiplayerAccess {
             public void onRoomConnecting(@Nullable Room room) {
                 //TODO: Add loading dialog
                 Toast.makeText(mContext, "Connecting to a multiplayer room", Toast.LENGTH_LONG).show();
+                mRoom = room;
             }
 
             @Override
             public void onRoomAutoMatching(@Nullable Room room) {
                 //TODO: Add loading dialog
                 Toast.makeText(mContext, "Auto matching to room", Toast.LENGTH_LONG).show();
+                mRoom = room;
             }
 
             @Override
             public void onPeerInvitedToRoom(@Nullable Room room, @NonNull List<String> list) {
                 Toast.makeText(mContext, "Invite Sent", Toast.LENGTH_SHORT).show();
+                mRoom = room;
             }
 
             @Override
             public void onPeerDeclined(@Nullable Room room, @NonNull List<String> list) {
                 Toast.makeText(mContext, "Your invite was declined", Toast.LENGTH_LONG).show();
+                mRoom = room;
                 if(!sPlaying && shouldCancelGame(room)) {
                     leaveRoom();
                 }
@@ -253,11 +293,13 @@ public class MultiplayerAccess {
             @Override
             public void onPeerJoined(@Nullable Room room, @NonNull List<String> list) {
                 Toast.makeText(mContext, "Friend Joined", Toast.LENGTH_SHORT).show();
+                mRoom = room;
             }
 
             @Override
             public void onPeerLeft(@Nullable Room room, @NonNull List<String> list) {
                 Toast.makeText(mContext, "Friend Left", Toast.LENGTH_SHORT).show();
+                mRoom = room;
                 if(!sPlaying && shouldCancelGame(room)) {
                     leaveRoom();
                 }
@@ -280,6 +322,7 @@ public class MultiplayerAccess {
 
             @Override
             public void onDisconnectedFromRoom(@Nullable Room room) {
+                mRoom = room;
                 leaveRoom();
                 mRoom = null;
                 mJoinedRoomConfig = null;
@@ -287,6 +330,8 @@ public class MultiplayerAccess {
 
             @Override
             public void onPeersConnected(@Nullable Room room, @NonNull List<String> list) {
+                Toast.makeText(mActivity, "Friend Joined Game", Toast.LENGTH_LONG).show();
+                mRoom = room;
                 if(sPlaying){
                     //TODO: Handle if player joins ongoing game
                 }else if(shouldStartGame(room)){
@@ -297,6 +342,7 @@ public class MultiplayerAccess {
 
             @Override
             public void onPeersDisconnected(@Nullable Room room, @NonNull List<String> list) {
+                mRoom = room;
                 if(sPlaying){
                     //TODO: Handle player leaving mid-game
                     if(shouldCancelGame(room)){
@@ -337,32 +383,68 @@ public class MultiplayerAccess {
         }
     }
 
+    /**
+     * This should be called when the user has been logged in successfully. The user
+     * will be notified of their login status and any game invitation will be checked for.
+     * @param data The data from the intent result
+     */
     public void onSignInResult(Intent data){
         GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
         if(result.isSuccess()) {
             GoogleSignInAccount signedInAccount = result.getSignInAccount();
+            App.setSignedIn(true);
+
+            if(mActivity instanceof MainActivity)
+                ((MainActivity) mActivity).onSignedIn();
+
             Toast.makeText(mContext, "Signed In", Toast.LENGTH_SHORT).show();
+            checkForInvitation();
         }else{
-            String message = result.getStatus().getStatusMessage();
-            if(message == null || message.isEmpty()){
-                message = "An error occurred while signing in";
-            }
-            new AlertDialog.Builder(mContext).setMessage(message)
-                    .setNeutralButton(android.R.string.ok, null).show();
+//            String message = result.getStatus().getStatusMessage();
+//            if(message == null || message.isEmpty()){
+//                message = "An error occurred while signing in";
+//            }
+//            new AlertDialog.Builder(mContext).setMessage(message)
+//                    .setNeutralButton(android.R.string.ok, null).show();
         }
     }
 
-    public void onSelectPlayersResult(int resultCode, Intent data){
-        if (resultCode != Activity.RESULT_OK) {
-            // TODO: Handle error/display message
-            return;
+    /**
+     * This should be called after the user has been returned from the invitation intent.
+     * The user will be connected to the game if they accepted an invitation.
+     * @param data The data from the intent result
+     */
+    public void onInvitationResult(Intent data)
+    {
+        Invitation invitation = data.getExtras().getParcelable(Multiplayer.EXTRA_INVITATION);
+        if (invitation != null)
+        {
+            RoomConfig.Builder builder = RoomConfig.builder(mRoomUpdateCallback)
+                    .setOnMessageReceivedListener(mMessageReceivedHandler)
+                    .setRoomStatusUpdateCallback(mRoomStatusCallbackHandler)
+                    .setInvitationIdToAccept(invitation.getInvitationId());
+            mJoinedRoomConfig = builder.build();
+            Games.getRealTimeMultiplayerClient(mActivity,
+                    GoogleSignIn.getLastSignedInAccount(mContext))
+                    .join(mJoinedRoomConfig);
+            // prevent screen from sleeping during handshake
+            mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
+    }
 
+    /**
+     * Called to invite players to a room.
+     * @param resultCode The result code of the invitation intent
+     * @param data The data from the invitation intent
+     */
+    public void onSelectPlayersResult(int resultCode, Intent data){
+
+        //Get invitees
         final ArrayList<String> invitees = data.getStringArrayListExtra(Games.EXTRA_PLAYER_IDS);
         int minAutoPlayers = data.getIntExtra(Multiplayer.EXTRA_MIN_AUTOMATCH_PLAYERS, 0);
         int maxAutoPlayers = data.getIntExtra(Multiplayer.EXTRA_MAX_AUTOMATCH_PLAYERS, 0);
 
-        createRoom(invitees, 1, maxAutoPlayers);
+        createRoom(invitees, minAutoPlayers, maxAutoPlayers);
     }
 
     public void onWaitingRoomResult(int resultCode){
@@ -518,6 +600,22 @@ public class MultiplayerAccess {
         }
 
         return connectedPlayers >= MIN_PLAYERS && !sPlaying;
+    }
+
+    /**
+     * Signs out the current user
+     */
+    public void signOut()
+    {
+        GoogleSignInClient signInClient = GoogleSignIn.getClient(mContext,
+                GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN);
+        signInClient.signOut().addOnCompleteListener(mActivity,
+                (task -> {
+                    App.setSignedIn(false);
+                    Toast.makeText(mContext, "Signed Out", Toast.LENGTH_SHORT).show();
+                    if(mActivity instanceof MainActivity)
+                        ((MainActivity) mActivity).onSignedOut();
+                }));
     }
 
     public boolean shouldCancelGame(Room room) {

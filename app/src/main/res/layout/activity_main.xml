@@ -16,7 +16,9 @@
         tools:context=".activity.MainActivity">
 
         <Button
-            android:layout_width="@dimen/message_width_xxsmall"
+            android:id="@+id/account_btn"
+            android:layout_width="wrap_content"
+            android:minWidth="@dimen/message_width_xxsmall"
             android:layout_height="@dimen/message_height"
             android:textAlignment="textStart"
             android:padding="@dimen/padding"
@@ -25,13 +27,14 @@
             android:fontFamily="@font/airside_sans"
             android:textSize="@dimen/txt_large"
             android:foreground="?attr/selectableItemBackground"
-            android:text="Start"
-            android:onClick="startGame"/>
+            android:text="@string/sign_out"
+            android:onClick="signOut"/>
 
         <Button
             android:id="@+id/btn_quickplay"
-            android:layout_width="@dimen/message_width_xsmall"
+            android:layout_width="wrap_content"
             android:layout_height="@dimen/message_height"
+            android:minWidth="@dimen/message_width_xsmall"
             android:textAlignment="textStart"
             android:paddingStart="@dimen/padding_large"
             android:padding="@dimen/padding"
@@ -43,7 +46,8 @@
             android:onClick="quickGame"/>
 
         <Button
-            android:layout_width="@dimen/message_width_small"
+            android:layout_width="wrap_content"
+            android:minWidth="@dimen/message_width_small"
             android:layout_height="@dimen/message_height"
             android:textAlignment="textStart"
             android:paddingStart="@dimen/padding_large"
@@ -56,8 +60,9 @@
             android:onClick="invitePlayers"/>
 
         <Button
-            android:layout_width="@dimen/message_width_large"
+            android:layout_width="wrap_content"
             android:layout_height="@dimen/message_height"
+            android:minWidth="@dimen/message_width_large"
             android:textAlignment="textStart"
             android:padding="@dimen/padding"
             android:paddingStart="@dimen/padding_large"

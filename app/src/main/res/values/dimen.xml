@@ -12,7 +12,7 @@
     <dimen name="message_width_xxsmall">120dp</dimen>
     <dimen name="message_width_xsmall">180dp</dimen>
     <dimen name="message_width_small">220dp</dimen>
-    <dimen name="message_width_large">300dp</dimen>
+    <dimen name="message_width_large">270dp</dimen>
 
     <dimen name="message_large_x_start">-300dp</dimen>
     <dimen name="message_small_x_start">-220dp</dimen>

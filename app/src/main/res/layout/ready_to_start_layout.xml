@@ -9,7 +9,8 @@
 
     <TextView
         android:id="@+id/txt_start"
-        android:layout_width="@dimen/message_width_small"
+        android:layout_width="wrap_content"
+        android:minWidth="@dimen/message_width_small"
         android:layout_height="@dimen/message_height"
         android:layout_marginLeft="@dimen/message_small_x_start"
         android:layout_gravity="start"
@@ -21,7 +22,8 @@
 
     <TextView
         android:id="@+id/txt_ready"
-        android:layout_width="@dimen/message_width_large"
+        android:layout_width="wrap_content"
+        android:minWidth="@dimen/message_width_large"
         android:layout_height="@dimen/message_height"
         android:layout_marginLeft="@dimen/message_large_x_start"
         android:layout_gravity="start"

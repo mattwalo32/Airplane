@@ -7,4 +7,6 @@
     <string name="waiting">WAITING</string>
     <string name="cancel">CANCEL SEARCH</string>
     <string name="quick">QUICK PLAY</string>
+    <string name="sign_out">SIGN OUT</string>
+    <string name="sign_in">SIGN IN</string>
 </resources>
