@@ -46,6 +46,7 @@
             android:onClick="quickGame"/>
 
         <Button
+            android:id="@+id/btn_invite"
             android:layout_width="wrap_content"
             android:minWidth="@dimen/message_width_small"
             android:layout_height="@dimen/message_height"
@@ -60,6 +61,7 @@
             android:onClick="invitePlayers"/>
 
         <Button
+            android:id="@+id/btn_view_invites"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/message_height"
             android:minWidth="@dimen/message_width_large"

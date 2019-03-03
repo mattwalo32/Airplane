@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Plane</string>
+    <string name="app_name">Dogfight</string>
     <string name="play_again">PLAY AGAIN</string>
     <string name="quit">QUIT</string>
     <string name="ready">READY</string>

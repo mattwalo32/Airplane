@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AnticipateOvershootInterpolator;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.games.multiplayer.realtime.Room;
+import com.walowtech.plane.App;
 import com.walowtech.plane.Input.GameClickListener;
 import com.walowtech.plane.R;
 import com.walowtech.plane.game.GameLoop;
@@ -79,6 +81,12 @@ public class GameActivity extends Activity {
         setContentView(R.layout.activity_game);
         mRoot = findViewById(R.id.root);
         mRoot.addView(gameLoop.getCore().getGraphics());
+        ((TextView) mRoot.findViewById(R.id.winner_msg)).setTypeface(App.getFont(this));
+        ((TextView) mRoot.findViewById(R.id.ready_msg)).setTypeface(App.getFont(this));
+        ((TextView) mRoot.findViewById(R.id.play_again)).setTypeface(App.getFont(this));
+        ((TextView) mRoot.findViewById(R.id.quit)).setTypeface(App.getFont(this));
+        ((TextView) mRoot.findViewById(R.id.txt_start)).setTypeface(App.getFont(this));
+        ((TextView) mRoot.findViewById(R.id.txt_ready)).setTypeface(App.getFont(this));
 
         mReadyLayout = findViewById(R.id.ready_layout);
         mReplayLayout = findViewById(R.id.gameover_layout);

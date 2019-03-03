@@ -3,11 +3,14 @@ package com.walowtech.plane.activity;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Typeface;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -56,6 +59,11 @@ public class MainActivity extends Activity {
         mRoot = findViewById(R.id.main_activity_root);
         mRoot.addView(backgroundLoop.getCore().getGraphics());
         mRoot.findViewById(R.id.homescreen_btns).bringToFront();
+
+        ((Button) mRoot.findViewById(R.id.btn_quickplay)).setTypeface(App.getFont(this));
+        ((Button) mRoot.findViewById(R.id.account_btn)).setTypeface(App.getFont(this));
+        ((Button) mRoot.findViewById(R.id.btn_view_invites)).setTypeface(App.getFont(this));
+        ((Button) mRoot.findViewById(R.id.btn_invite)).setTypeface(App.getFont(this));
 
         if(!mMultiplayer.isSignedIn())
             mMultiplayer.startSignInIntent();
