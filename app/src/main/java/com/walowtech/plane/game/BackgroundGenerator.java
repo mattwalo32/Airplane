@@ -1,12 +1,10 @@
 package com.walowtech.plane.game;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.support.v4.graphics.ColorUtils;
-import android.util.DisplayMetrics;
+import androidx.core.graphics.ColorUtils;
 
 import java.util.Random;
 

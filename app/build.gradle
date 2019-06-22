@@ -8,9 +8,9 @@ android {
         applicationId "com.walowtech.plane"
         minSdkVersion 17
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionCode 2
+        versionName "1.0.1"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     configurations {
@@ -48,14 +48,14 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support:support-v4:28.0.0'
-    implementation 'com.android.support:support-media-compat:28.0.0'
-    implementation 'com.google.android.gms:play-services-auth:16.0.1'
-    implementation 'com.google.android.play:core:1.4.0'
-    implementation 'com.google.android.gms:play-services-games:16.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.media:media:1.0.1'
+    implementation 'com.google.android.gms:play-services-auth:17.0.0'
+    implementation 'com.google.android.play:core:1.6.1'
+    implementation 'com.google.android.gms:play-services-games:18.0.0'
     implementation 'com.google.api-client:google-api-client-android:1.23.0'
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.google.code.findbugs:jsr305:1.3.9'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.google.code.findbugs:jsr305:3.0.2'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
 }

@@ -3,7 +3,7 @@ package com.walowtech.plane;
 import android.app.Application;
 import android.content.Context;
 import android.graphics.Typeface;
-import android.support.v4.content.res.ResourcesCompat;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.walowtech.plane.multiplayer.MultiplayerAccess;
 

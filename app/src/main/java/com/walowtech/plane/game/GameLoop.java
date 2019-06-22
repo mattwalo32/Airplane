@@ -116,7 +116,7 @@ public class GameLoop implements Runnable{
 
                 //If there is still time left in the cycle, sleep for the remaining time
                 if(cycleTime < TARGET_CYCLE_TIME) {
-                    Log.v(TAG, "Sleep Time: " + (cycleTime - TARGET_CYCLE_TIME));
+                    //Log.v(TAG, "Sleep Time: " + (cycleTime - TARGET_CYCLE_TIME));
                     Thread.sleep(TARGET_CYCLE_TIME - cycleTime);
                 }
             } catch (InterruptedException e) {
