@@ -9,4 +9,9 @@
     <string name="quick">QUICK PLAY</string>
     <string name="sign_out">SIGN OUT</string>
     <string name="sign_in">SIGN IN</string>
+
+    <string name="waiting_for_match">WAITING FOR PLAYERS</string>
+    <string name="connecting">CONNECTING</string>
+    <string name="connected">CONNECTED</string>
+    <string name="you">YOU</string>
 </resources>

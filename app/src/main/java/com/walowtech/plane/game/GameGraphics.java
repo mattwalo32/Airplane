@@ -114,18 +114,6 @@ public class GameGraphics extends SurfaceView implements GameComponent{
 //                }
 //            }
 
-            // If the player is local, use relative coordinates. If not use real coordinates
-            float planeX = plane.isLocal() || plane.inDisplayMode() ? plane.getX() : plane.getRealX() - manager.getLocalPlayer().getPlane().getScreenX();
-            float planeY = plane.isLocal() || plane.inDisplayMode() ? plane.getY() : plane.getRealY() - manager.getLocalPlayer().getPlane().getScreenY();
-
-
-            // Rotate plane
-            Point centerOfRotation = new Point((int)(planeX + plane.getPlaneSprite().getWidth() / 2), (int)(planeY + plane.getPlaneSprite().getHeight() / 2));
-            canvas.save();
-            canvas.rotate(plane.getHeading() + 180, centerOfRotation.x, centerOfRotation.y);
-            canvas.drawBitmap(plane.getPlaneSprite(), planeX, planeY, mPaint);
-            canvas.restore();
-
             // Draw tail
             mPaint.setColor(plane.getTail().getTailColor());
 
@@ -148,6 +136,18 @@ public class GameGraphics extends SurfaceView implements GameComponent{
                     //canvas.restore();
                 }
             }
+
+            // If the player is local, use relative coordinates. If not use real coordinates
+            float planeX = plane.isLocal() || plane.inDisplayMode() ? plane.getX() : plane.getRealX() - manager.getLocalPlayer().getPlane().getScreenX();
+            float planeY = plane.isLocal() || plane.inDisplayMode() ? plane.getY() : plane.getRealY() - manager.getLocalPlayer().getPlane().getScreenY();
+
+
+            // Rotate plane
+            Point centerOfRotation = new Point((int)(planeX + plane.getPlaneSprite().getWidth() / 2), (int)(planeY + plane.getPlaneSprite().getHeight() / 2));
+            canvas.save();
+            canvas.rotate(plane.getHeading() + 180, centerOfRotation.x, centerOfRotation.y);
+            canvas.drawBitmap(plane.getPlaneSprite(), planeX, planeY, mPaint);
+            canvas.restore();
         }
     }
 

@@ -2,8 +2,12 @@ package com.walowtech.plane.multiplayer;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
@@ -18,10 +22,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.auth.api.signin.SignInAccount;
 import com.google.android.gms.games.Game;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesActivityResultCodes;
 import com.google.android.gms.games.GamesCallbackStatusCodes;
+import com.google.android.gms.games.PlayersClient;
 import com.google.android.gms.games.RealTimeMultiplayerClient;
 import com.google.android.gms.games.multiplayer.Invitation;
 import com.google.android.gms.games.multiplayer.Multiplayer;
@@ -37,14 +43,19 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.common.base.Charsets;
 import com.walowtech.plane.App;
+import com.walowtech.plane.R;
 import com.walowtech.plane.activity.GameActivity;
 import com.walowtech.plane.activity.MainActivity;
+import com.walowtech.plane.activity.WaitingRoomFragment;
+import com.walowtech.plane.data.Player;
 import com.walowtech.plane.game.GameLoop;
 import com.walowtech.plane.game.GameResult;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.walowtech.plane.activity.MainActivity.RC_WAITING_ROOM;
 
 /** This class manages the all the multiplayer aspect of the game.
  *
@@ -61,7 +72,6 @@ public class MultiplayerAccess {
     private static final int MAX_PLAYERS = 2;
     private static final int RC_SIGN_IN = 5;
     private static final int RC_SELECT_PLAYERS = 9006;
-    private static final int RC_WAITING_ROOM = 9007;
 
     public static boolean sPlaying = false;
     public static boolean sClientReady = false;
@@ -182,8 +192,8 @@ public class MultiplayerAccess {
             public void onRoomCreated(int code, @Nullable Room room) {
                 if(code == GamesCallbackStatusCodes.OK && room != null){
                     mRoom = room;
-                    Toast.makeText(mContext, "Room Created", Toast.LENGTH_SHORT).show();
-                    showWaitingRoom(room, MAX_PLAYERS);
+
+                    showWaitingRoom();
                 }else{
                     Toast.makeText(mContext, "Error creating room, please try again.", Toast.LENGTH_SHORT).show();
                     mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -193,10 +203,11 @@ public class MultiplayerAccess {
             @Override
             public void onJoinedRoom(int code, @Nullable Room room) {
                 if (code == GamesCallbackStatusCodes.OK && room != null) {
-                    Toast.makeText(mContext, "Joined Room " + room.getRoomId(), Toast.LENGTH_SHORT).show();
-                    showWaitingRoom(room, MAX_PLAYERS);
+                    //Toast.makeText(mContext, "Joined Room " + room.getRoomId(), Toast.LENGTH_SHORT).show();
+                    mRoom = room;
+                    showWaitingRoom();
                 } else {
-                    Toast.makeText(mContext, "Error joining room " + room.getRoomId() + ", please try again.", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(mContext, "Error joining room " + room.getRoomId() + ", please try again.", Toast.LENGTH_SHORT).show();
                     mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 }
             }
@@ -208,16 +219,17 @@ public class MultiplayerAccess {
                 if(mActivity instanceof GameActivity)
                 {
                     ((GameActivity) mActivity).exitMatch();
-                    leaveRoom();
-                    resetState();
+//                    if(mActivity.getFragmentManager().findFragmentByTag("Waiting Room") != null)
+//                        mActivity.getFragmentManager().findFragmentByTag("Waiting Room").onPause();
                 }
             }
 
             @Override
             public void onRoomConnected(int code, @Nullable Room room) {
                 if (code == GamesCallbackStatusCodes.OK && room != null) {
-                    Toast.makeText(mContext, "Connected to room", Toast.LENGTH_SHORT).show();
-                    showWaitingRoom(mRoom, MAX_PLAYERS);
+                    //Toast.makeText(mContext, "Connected to room", Toast.LENGTH_SHORT).show();
+                    mRoom = room;
+                    showWaitingRoom();
                 } else {
                     Toast.makeText(mContext, "Error connecting to room: " + code, Toast.LENGTH_SHORT).show();
                     mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -265,8 +277,9 @@ public class MultiplayerAccess {
             @Override
             public void onRoomConnecting(@Nullable Room room) {
                 //TODO: Add loading dialog
-                Toast.makeText(mContext, "Connecting to a multiplayer room", Toast.LENGTH_LONG).show();
+                Toast.makeText(mContext, "Connecting", Toast.LENGTH_LONG).show();
                 mRoom = room;
+                showWaitingRoom();
             }
 
             @Override
@@ -293,29 +306,26 @@ public class MultiplayerAccess {
 
             @Override
             public void onPeerJoined(@Nullable Room room, @NonNull List<String> list) {
-                Toast.makeText(mContext, "Friend Joined", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(mContext, "Friend Joined", Toast.LENGTH_SHORT).show();
                 mRoom = room;
+
             }
 
             @Override
             public void onPeerLeft(@Nullable Room room, @NonNull List<String> list) {
-                Toast.makeText(mContext, "Friend Left", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "Opponent Left", Toast.LENGTH_SHORT).show();
                 mRoom = room;
-                if(!sPlaying && shouldCancelGame(room)) {
-                    leaveRoom();
-                }
+                leaveRoom();
             }
 
             @Override
             public void onConnectedToRoom(@Nullable Room room) {
-                Log.i("MULTIPLAYER", "Connected to room");
                 mRoom = room;
                 Games.getPlayersClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
                         .getCurrentPlayerId().addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
                     public void onSuccess(String playerId) {
                         mClientParticipantId = mRoom.getParticipantId(playerId);
-                        Log.i("MULTIPLAYER", "USER ID: " + mClientParticipantId);
                         startGame();
                     }
                 });
@@ -333,6 +343,7 @@ public class MultiplayerAccess {
             public void onPeersConnected(@Nullable Room room, @NonNull List<String> list) {
                 Toast.makeText(mActivity, "Friend Joined Game", Toast.LENGTH_LONG).show();
                 mRoom = room;
+
                 if(sPlaying){
                     //TODO: Handle if player joins ongoing game
                 }else if(shouldStartGame(room)){
@@ -373,10 +384,17 @@ public class MultiplayerAccess {
     public void leaveRoom(){
         try
         {
+            if(mActivity instanceof MainActivity)
+                ((MainActivity) mActivity).onLeaveMatch();
+
+            dismissWaitingRoom();
+
             Games.getRealTimeMultiplayerClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
                     .leave(mJoinedRoomConfig, mRoom.getRoomId());
             mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             mRoom = null;
+            mClientParticipantId = null;
+            sPlaying = false;
         }
         catch(NullPointerException e)
         {
@@ -476,6 +494,9 @@ public class MultiplayerAccess {
 
     public void createRoom(ArrayList<String> pInvitees, int pMinAutoPlayers, int pMaxAutoPlayers){
         // Create the room configuration.
+        if(mActivity == null){
+            return;
+        }
 
         RoomConfig.Builder roomBuilder = RoomConfig.builder(mRoomUpdateCallback)
                 .setOnMessageReceivedListener(mMessageReceivedHandler)
@@ -494,38 +515,75 @@ public class MultiplayerAccess {
         .create(mJoinedRoomConfig);
     }
 
-    private void showWaitingRoom(Room room, int maxPlayersToStartGame){
-        Games.getRealTimeMultiplayerClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
-        .getWaitingRoomIntent(room, maxPlayersToStartGame)
-                .addOnSuccessListener(new OnSuccessListener<Intent>() {
-                    @Override
-                    public void onSuccess(Intent intent) {
-                        mActivity.startActivityForResult(intent, RC_WAITING_ROOM);
+    private void showWaitingRoom(){
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(mActivity);
+        if(account == null) {
+            Toast.makeText(mActivity, "An error occurred, try signing out and in again.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        WaitingRoomFragment waitingRoomFragment = (WaitingRoomFragment) mActivity.getFragmentManager().findFragmentByTag("Waiting Room");
+
+        // Create the waiting room
+        if(waitingRoomFragment == null) {
+            FragmentTransaction transaction = mActivity.getFragmentManager().beginTransaction();
+
+            Player localPlayer = new Player(getClientUri(), getClientName().toUpperCase(), mActivity.getString(R.string.connected));
+            waitingRoomFragment = new WaitingRoomFragment();
+            waitingRoomFragment.setCallback(this);
+            waitingRoomFragment.addPlayer(localPlayer);
+            waitingRoomFragment.show(transaction, "Waiting Room");
+        } else {
+            // Update the waiting room
+            for(Participant participant: mRoom.getParticipants()) {
+                boolean inRoom = false;
+                for(Player player: waitingRoomFragment.getPlayers()) {
+                    if(player.getName().toUpperCase().equals(participant.getDisplayName().toUpperCase())){
+                        inRoom = true;
                     }
-                });
+                }
+
+                if(!inRoom){
+                    waitingRoomFragment.addPlayer(new Player(participant.getIconImageUri(), participant.getDisplayName(), mActivity.getString(R.string.connected)));
+                }
+            }
+        }
     }
 
     public void sendToAllReliably(final String pMessage){
         byte[] bytes = pMessage.getBytes(Charsets.UTF_8);
 
-        for(String participantId : mRoom.getParticipantIds()){
-            if(!participantId.equals(mClientParticipantId)){
-                Task<Integer> task = Games.
-                        getRealTimeMultiplayerClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
-                        .sendReliableMessage(bytes, mRoom.getRoomId(), participantId, null).addOnCompleteListener(new OnCompleteListener<Integer>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Integer> task) {
-                            }
-                        });
+        try {
+            for (String participantId : mRoom.getParticipantIds()) {
+                if (!participantId.equals(mClientParticipantId)) {
+                    Task<Integer> task = Games.
+                            getRealTimeMultiplayerClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
+                            .sendReliableMessage(bytes, mRoom.getRoomId(), participantId, null).addOnCompleteListener(new OnCompleteListener<Integer>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Integer> task) {
+                                }
+                            });
+                }
             }
+        } catch(NullPointerException npe) {
+            npe.printStackTrace();
         }
     }
 
     public void sendToAll(final String pMessage){
         byte[] bytes = pMessage.getBytes(Charsets.UTF_8);
 
-        Games.getRealTimeMultiplayerClient(mActivity, GoogleSignIn.getLastSignedInAccount(mActivity))
-                        .sendUnreliableMessageToOthers(bytes, mRoom.getRoomId());
+        if(mActivity == null)
+            return;
+
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(mActivity);
+
+        try {
+            Games.getRealTimeMultiplayerClient(mActivity, account)
+                    .sendUnreliableMessageToOthers(bytes, mRoom.getRoomId());
+        } catch(NullPointerException npe) {
+            Log.i("MultiplayerAccess", "Issue while sending messages");
+        }
 
     }
 
@@ -536,18 +594,24 @@ public class MultiplayerAccess {
 
     private void startGame(){
         if(!sPlaying && mClientParticipantId != null) {
-            Toast.makeText(mContext, "Starting Match", Toast.LENGTH_SHORT).show();
+            sPlaying = true;
             determineStartinPosition();
+            dismissWaitingRoom();
+
+
             if(mActivity instanceof MainActivity)
                 ((MainActivity) mActivity).getLoop().stopGame();
             Intent gameIntent = new Intent(mContext, GameActivity.class);
             gameIntent.putExtra("ROOM", mRoom);
             gameIntent.putExtra("USERID", mClientParticipantId);
             mActivity.startActivity(gameIntent);
-            sPlaying = true;
         }
     }
 
+    private void dismissWaitingRoom(){
+        if(mActivity.getFragmentManager().findFragmentByTag("Waiting Room") != null)
+            mActivity.getFragmentManager().findFragmentByTag("Waiting Room").onPause();
+    }
     /**
      * Determines where players start based on their unique player ID
      */
@@ -633,7 +697,7 @@ public class MultiplayerAccess {
         return activeParticipants >= MIN_PLAYERS;
     }
 
-    private void resetState()
+    public void resetState()
     {
         sMustBeInitialized = true;
         mRoom = null;
@@ -650,15 +714,68 @@ public class MultiplayerAccess {
     }
 
     /**
+     * Updates the stored participation ID of the client
+     */
+    private void updateParticipationID(){
+        String tmpId = null;
+        int numJoined = 0;
+
+        if(mRoom != null) {
+            if(mRoom.getParticipantIds().size() > 0) {
+                for(Participant p : mRoom.getParticipants()) {
+                    if(p.getStatus() == Participant.STATUS_JOINED){
+                        numJoined++;
+                        tmpId = p.getParticipantId();
+                    }
+                }
+
+                // If there is only one person who has joined the room, then it must be the client
+                if(numJoined == 1)
+                    mClientParticipantId = tmpId;
+            }
+
+            // Ensure that this person is truly in the room
+            try {
+                mRoom.getParticipantId(mClientParticipantId);
+            } catch(IllegalStateException e) {
+                mClientParticipantId = null;
+            }
+
+        }else{
+            mClientParticipantId = null;
+        }
+    }
+
+    /**
      * Grabs the opponent's display name
      * @return Display name of opponent
      */
     public String getOpponnetName()
     {
+        if(mRoom == null)
+            return "";
+
+        updateParticipationID();
         for(Participant participant : mRoom.getParticipants())
         {
             if(!participant.getParticipantId().equals(mClientParticipantId))
                 return participant.getDisplayName();
+        }
+
+        return null;
+    }
+
+    /**
+     * Grabs the opponent's icon uri
+     * @return Icon Uri of opponent
+     */
+    public Uri getOpponnetUri()
+    {
+        updateParticipationID();
+        for(Participant participant : mRoom.getParticipants())
+        {
+            if(!participant.getParticipantId().equals(mClientParticipantId))
+                return participant.getIconImageUri();
         }
 
         return null;
@@ -670,7 +787,22 @@ public class MultiplayerAccess {
      */
     public String getClientName()
     {
+        updateParticipationID();
+        if(mClientParticipantId == null)
+            return mActivity.getString(R.string.you);
         return mRoom.getParticipant(mClientParticipantId).getDisplayName();
+    }
+
+    /**
+     * Grabs the client's icon URI
+     * @return Client's icon URI
+     */
+    public Uri getClientUri()
+    {
+        updateParticipationID();
+        if(mClientParticipantId == null)
+            return null;
+        return mRoom.getParticipant(mClientParticipantId).getIconImageUri();
     }
 
     public void setGameLoop(GameLoop mGameLoop) {

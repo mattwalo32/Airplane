@@ -27,7 +27,7 @@ public class PlayerManager implements GameComponent {
     public static final int BASE_TAIL_WIDTH = 4;
     public static final int RIGHT_GAME_BOUND = 2000;
     public static final int BOTTOM_GAME_BOUND = 3000;
-    public static final int MAX_DISPLAY_PLANES = 5;
+    public static final int MAX_DISPLAY_PLANES = 3;
     public static RectF GAME_BOUNDS;
     private boolean mDisplayMode;
     private int dp;

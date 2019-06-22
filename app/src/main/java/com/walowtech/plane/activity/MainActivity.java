@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
 
     private static final int RC_SIGN_IN = 5;
     private static final int RC_SELECT_PLAYERS = 9006;
-    private static final int
+    public static final int
             RC_WAITING_ROOM = 9007;
     private static final int RC_INVITATION_INBOX = 9008;
 
@@ -98,8 +98,8 @@ public class MainActivity extends Activity {
             MultiplayerAccess.sMustBeInitialized = false;
         }
 
-        if(!mMultiplayer.isSignedIn())
-            mMultiplayer.silentlySignIn();
+
+        mMultiplayer.silentlySignIn();
 
         backgroundLoop.restartGame();
         ((TextView) mRoot.findViewById(R.id.btn_quickplay)).setText(mMultiplayer.getRoom() == null ? R.string.quick : R.string.cancel);
@@ -199,6 +199,14 @@ public class MainActivity extends Activity {
             if(mMultiplayer != null)
                 mMultiplayer.startSignInIntent();
         }
+    }
+
+    /**
+     * Called whenever a multiplayer match is left so that
+     * the screen may be reset.
+     */
+    public void onLeaveMatch(){
+        animateBounce(this, findViewById(R.id.btn_quickplay), (int) getResources().getDimension(R.dimen.message_width_xsmall) * -1, 0, R.string.quick);
     }
 
     /**

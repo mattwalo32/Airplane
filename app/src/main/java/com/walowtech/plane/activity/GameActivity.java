@@ -124,7 +124,15 @@ public class GameActivity extends Activity {
     public void exitMatch()
     {
         Toast.makeText(this, "Game has ended because players left", Toast.LENGTH_LONG).show();
+        mMultiplayerAccess.leaveRoom();
+        mMultiplayerAccess.resetState();
         finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        exitMatch();
     }
 
     /**
